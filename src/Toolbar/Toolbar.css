@@ -1,0 +1,6 @@
+.toolbar {
+    display: flex;
+}
+.toolbar button {
+    margin: 5px;
+}
