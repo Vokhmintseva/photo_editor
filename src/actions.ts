@@ -16,7 +16,7 @@ export function cleanCanvas(width: number = defaultCanvasWidth, height: number =
 	return new ImageData(new Uint8ClampedArray(bufferArray.buffer), width, height);
 }
 
-export function createCanvas(editor: Editor): Editor {
+export function createCanvas(editor: Editor, payload: Object): Editor {
 	return {
 		...editor,
 		canvas: cleanCanvas(),
@@ -24,21 +24,33 @@ export function createCanvas(editor: Editor): Editor {
 	}
 }
 
-export function resizeCanvas(editor: Editor, newWidth: number, newHeight: number): Editor {
+export function resizeCanvas(editor: Editor, payload: {newWidth: number, newHeight: number}): Editor {
 	return {
 		...editor,
 		canvas: {
 			...editor.canvas,
-			width: newWidth,
-			height: newHeight
+			width: payload.newWidth,
+			height: payload.newHeight
 		}
 	}
 }
 
-export function addImage(editor: Editor, newImage: ImageData): Editor {
+// export function resizeCanvas(editor: Editor, newWidth: number, newHeight: number): Editor {
+// 	return {
+// 		...editor,
+// 		canvas: {
+// 			...editor.canvas,
+// 			width: newWidth,
+// 			height: newHeight
+// 		}
+// 	}
+// }
+
+export function addImage(editor: Editor, payload: {newImage: ImageData}): Editor {
+	console.log('new image', payload.newImage);
 	return {
 		...editor,
-		canvas: newImage,
+		canvas: payload.newImage,
 	}
 }
 
@@ -71,17 +83,17 @@ export function removeCanvas(editor: Editor): Editor {
 	}
 }
 
-export function selectArea(editor: Editor, startPoint: Point, endPoint: Point): Editor {
+export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint: Point}): Editor {
 	return {
 		...editor,
 		selectedObject: {
 			type: 'selectedArea',
 			position: {
-				x: Math.min(startPoint.x, endPoint.x),
-				y: Math.min(startPoint.y, endPoint.y)
+				x: Math.min(payload.startPoint.x, payload.endPoint.x),
+				y: Math.min(payload.startPoint.y, payload.endPoint.y)
 			},
-			w: Math.abs(startPoint.x - endPoint.x), 
-			h: Math.abs(startPoint.y - endPoint.y),
+			w: Math.abs(payload.startPoint.x - payload.endPoint.x), 
+			h: Math.abs(payload.startPoint.y - payload.endPoint.y),
 		} 
 	}
 }
@@ -254,23 +266,53 @@ export function crop(editor: Editor): Editor {
 export function turnImgDataToGrey(editor: Editor): ImageData {
 	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
 	for (let i = 0; i < newPxArray.length; i += 4) {
-		let r = newPxArray[i];
-		let g = newPxArray[i + 1];
-		let b = newPxArray[i + 2];
-		newPxArray[i] = (r * 0.393) + (g * 0.769) + (b * 0.189); // red
-		newPxArray[i + 1] = (r * 0.349) + (g * 0.686) + (b * 0.168); // green
-		newPxArray[i + 2] = (r * 0.272) + (g * 0.534) + (b * 0.131); // blue
+		const average = (newPxArray[i] + newPxArray[i + 1] + newPxArray[i + 2]) / 3
+		newPxArray[i] = average
+		newPxArray[i + 1] = average
+		newPxArray[i + 2] = average
+	}
+	return new ImageData(newPxArray, editor.canvas.width, editor.canvas.height);
+}
+
+function filter(editor: Editor, filterColor: string): ImageData {
+	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
+	console.log("filterColor", filterColor)
+	if (filterColor === "grey") {
+		for (let i = 0; i < newPxArray.length; i += 4) {
+			const average = (newPxArray[i] + newPxArray[i + 1] + newPxArray[i + 2]) / 3
+			newPxArray[i] = average
+			newPxArray[i + 1] = average
+			newPxArray[i + 2] = average
+		}
+	} else {
+		for (let i = 0; i < newPxArray.length; i += 4) {
+			newPxArray[i] = filterColor === "red" ? newPxArray[i] : 0;
+			newPxArray[i + 1] = filterColor === "green" ? newPxArray[i + 1] : 0;
+			newPxArray[i + 2] = filterColor === "blue" ? newPxArray[i + 2] : 0;
+			
+			
+			// newPxArray[i + 1] = 0;
+			// newPxArray[i + 2] = 0;
+		}
 	}
 	return new ImageData(newPxArray, editor.canvas.width, editor.canvas.height);
 }
 
 //применить серый фильтр
-export function applyGreyFilter(editor: Editor): Editor {
+export function applyGreyFilter(editor: Editor, payload: Object): Editor {
 	return {
 		...editor,
 		canvas: turnImgDataToGrey(editor),
 	}	
 }	
+
+export function applyFilter(editor: Editor, payload: {filterColor: string}): Editor {
+	return {
+		...editor,
+		canvas: filter(editor, payload.filterColor),
+	}	
+}
+
 
 export function addFigure(editor: Editor, newFigure: ShapeObject): Editor {
 	return {

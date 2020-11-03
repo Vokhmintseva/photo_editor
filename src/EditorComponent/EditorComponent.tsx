@@ -1,70 +1,70 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useState } from 'react'
 import {Editor} from '../model'
 import Toolbar from '../Toolbar/Toolbar';
+import { dispatch, getEditor } from '../reducer';
+import {selectArea} from '../actions';
+import Video from '../UI/Video';
 
 interface EditorComponentProps {
     editor: Editor
 }
 
-function EditorComponent({editor}: EditorComponentProps) {
-    
+function EditorComponent(editProps: EditorComponentProps) {
+    console.log('rendering editor component');
+    const [mouseDownCoordinates, setMouseDownCoordinates] = useState({x: 0, y: 0});
+    const [mouseUpCoordinates, setMouseUpCoordinates] = useState({x: 0, y: 0});
+    const [selectionParams, setSelectionParams] = useState({x: 0, y: 0, width: 0, height: 0})
+
     let canvasRef = useRef(null);
+    
+
     useEffect(() => { //функция запутится после рендеринга
         const canv: HTMLCanvasElement = canvasRef.current!;
         var context = canv.getContext('2d') as CanvasRenderingContext2D;
-        context.putImageData(editor.canvas, 0, 0, 0, 0, editor.canvas.width, editor.canvas.height);
+        context.putImageData(editProps.editor.canvas, 0, 0, 0, 0, editProps.editor.canvas.width, editProps.editor.canvas.height);
     });   
      
-    
+    function onMouseUpHandler(event: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
+        setMouseUpCoordinates({x: event.clientX, y: event.clientY});
+        if ((mouseUpCoordinates.x !== mouseDownCoordinates.x) && (mouseUpCoordinates.y !== mouseDownCoordinates.y)) {
+            let startX = Math.min(mouseUpCoordinates.x, mouseDownCoordinates.x);
+            let startY = Math.min(mouseUpCoordinates.y, mouseDownCoordinates.y);
+            let width = Math.abs(mouseUpCoordinates.x - mouseDownCoordinates.x);
+            let height = Math.abs(mouseUpCoordinates.y - mouseDownCoordinates.y);
+            setSelectionParams({x: startX, y: startY, width: width, height: height});
+            dispatch(selectArea, {startPoint: mouseDownCoordinates, endPoint: mouseUpCoordinates});     
+        }
+    }
+
     return (
         <div>
-            <Toolbar editor={editor} reference={canvasRef}/>
-            <canvas 
-                ref={canvasRef} //React установит .current на этот DOM-узел
-                width={editor.canvas.width}
-                height={editor.canvas.height}
-            />
+            <Toolbar editor={editProps.editor} reference={canvasRef}/>
+            <div style={{position: 'relative'}}>
+                <canvas 
+                    style={{position: 'absolute'}}
+                    ref={canvasRef} //React установит .current на этот DOM-узел
+                    width={editProps.editor.canvas.width}
+                    height={editProps.editor.canvas.height}
+                    onMouseDown={(e) => setMouseDownCoordinates({x: e.clientX, y: e.clientY})}
+                    onMouseUp={onMouseUpHandler}
+
+                />
+                
+                <div style={{
+                        position: 'absolute',
+                        border: '4px dashed black',
+                        top: `${selectionParams.x}`,
+                        left: `${selectionParams.y}`,
+                        width: `${selectionParams.width}`,
+                        height: `${selectionParams.height}`,
+                     }}
+                ></div>
+                
+                <Video editor={editProps.editor} reference={canvasRef}/>
+                     
+            </div>
         </div>
     )
 }
+
 export default EditorComponent;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// const Canvas = props => {
-  
-//   const canvasRef = useRef(null)
-  
-//   useEffect(() => {
-//     const canvas = canvasRef.current
-//     const context = canvas.getContext('2d')
-//     //Our first draw
-//     context.fillStyle = '#000000'
-//     context.fillRect(0, 0, context.canvas.width, context.canvas.height)
-//   }, [])
-  
-//   return <canvas ref={canvasRef} {...props}/>
-// }
-
-// export default Canvas
-
-
-        //console.log(context.getImageData(0, 0, 20, 20).data);
-
-        
-        // var data = new Uint8Array(20 * 20 * 4);
-        // crypto.getRandomValues(data);
-        // var img = new ImageData(new Uint8ClampedArray(data.buffer), 20, 20);
-        // context.putImageData(img, 0, 0);
-        // console.log(context.getImageData(0, 0, 20, 20));

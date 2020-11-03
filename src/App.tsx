@@ -2,23 +2,16 @@ import React from 'react';
 import './App.css';
 import {Editor} from './model';
 import EditorComponent from './EditorComponent/EditorComponent';
-import {createCanvas} from './actions'
 
-// interface AppProps {
-//   editor: Editor
-// }
 
-function App() {
-  
-  let editor: Editor = {
-    canvas: {} as ImageData,
-    selectedObject: null,
-  }
-  editor.canvas = createCanvas(editor).canvas;
-  
+interface AppProps {
+  editor: Editor
+}
+
+function App(appProps: AppProps) {
   return (
     <div className="App">
-      <EditorComponent editor={editor}/>
+      <EditorComponent editor={appProps.editor}/>
     </div>
   );
 }

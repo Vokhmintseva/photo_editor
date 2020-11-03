@@ -1,6 +1,8 @@
-import React, { useRef} from 'react'
+import React from 'react'
 import {Editor} from '.././model';
-import {addImage, resizeCanvas} from '../actions'
+import {addImage} from '../actions'
+import { dispatch } from '../reducer';
+
 
 interface OpenButtonProps {
     editor: Editor,
@@ -14,35 +16,32 @@ function OpenButton(openButtonProps: OpenButtonProps) {
         const image = new Image();
         var binaryData = [];
         binaryData.push(file);
-        let url = window.URL.createObjectURL(new Blob(binaryData, {type: "originalFile.type"}))
-        let canvas: HTMLCanvasElement = openButtonProps.reference.current; 
+        let url = window.URL.createObjectURL(new Blob(binaryData, {type: "originalFile.type"}));
         image.src = url;
-        
+        e.target.value = '';
+        let canvas: HTMLCanvasElement = openButtonProps.reference.current; 
         let context = canvas!.getContext('2d');
-        image.onload = async () => {
-            let width = image.width;
-            let height = image.height;
-            if (width > openButtonProps.editor.canvas.width || height > openButtonProps.editor.canvas.height) {
-                let isResize = window.confirm("импортируемая фотография больше по размеру холста. Увеличить полотно до размера фотографии?");
-                if (isResize) {
-                    resizeCanvas(openButtonProps.editor, width, height);
-                    
-                    canvas.width = width;
-                    canvas.height = height
-                } else return
-
-            }
-            await context!.drawImage(image, 0, 0);
-            
-        };
-        let newImgData = context!.getImageData(0, 0, openButtonProps.editor.canvas.width, openButtonProps.editor.canvas.height);
-        addImage(openButtonProps.editor, newImgData);
-
+        
+        image.onload = () => {
+            let imageWidth = image.width;
+            let imageHeight = image.height;
+            if (imageWidth > openButtonProps.editor.canvas.width || imageHeight > openButtonProps.editor.canvas.height) {
+                let shouldEnlarge = window.confirm("импортируемая фотография больше по размеру холста. Увеличить полотно до размера фотографии?");
+                if (shouldEnlarge) {
+                    canvas.width = imageWidth;
+                    canvas.height = imageHeight;
+                    context!.drawImage(image, 0, 0);
+                } 
+            } else
+                context!.drawImage(image, 0, 0);
+            let newImgData = context!.getImageData(0, 0, canvas.width, canvas.height);
+            dispatch(addImage, {newImage: newImgData})
+        }
     }
-    console.log('openButtonProps.editor.canvas.width', openButtonProps.editor.canvas.width)
+
     return (
         <input type="file" name="myImage" onChange={onImageChange} style={{margin: '5px'}}/>
     );
-}
+}    
 
 export default OpenButton;

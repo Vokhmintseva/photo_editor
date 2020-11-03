@@ -1,12 +1,12 @@
 import React, { useRef} from 'react'
 import {Editor} from '../model'
 
-interface Sav {
+interface SaveButtonProps {
     editor: Editor,
     reference: any
 }
 
-function SaveButton(saveButtonProps: Sav) {
+function SaveButton(saveButtonProps: SaveButtonProps) {
         
     enum Format {jpeg, png};
     let f = Format.jpeg;
