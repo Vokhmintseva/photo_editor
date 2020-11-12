@@ -180,17 +180,18 @@ export function getPxArrIndex(editor: Editor, p: Point): number {
 //получить выделенную область канваса в виде ImageData
 export function getSelectedAreaData(editor: Editor): ImageData | undefined  {
 	if (editor.selectedObject !== null) {
-		let startX: number = editor.selectedObject.position.x;
-		let startY: number = editor.selectedObject.position.y;
-		let endY: number = startY + editor.selectedObject.h;
-		let selectionWidth: number = editor.selectedObject.w;
-		let selectionHeight: number = editor.selectedObject.h;
+		let editorCopy = JSON.parse(JSON.stringify(editor));
+		let startX: number = editorCopy.selectedObject.position.x;
+		let startY: number = editorCopy.selectedObject.position.y;
+		let endY: number = startY + editorCopy.selectedObject.h;
+		let selectionWidth: number = editorCopy.selectedObject.w;
+		let selectionHeight: number = editorCopy.selectedObject.h;
 		let newImgData: ImageData = new ImageData(selectionWidth, selectionHeight);
 		let k: number = 0; 
 		for (let i: number = startY; i < endY; i++) {
 			let startRowIndex: number = getPxArrIndex(editor, {x: startX, y: i})
 			for (let j: number = startRowIndex; j < startRowIndex + selectionWidth * 4; j++) {
-				newImgData.data[k] = editor.canvas.data[j];
+				newImgData.data[k] = editorCopy.canvas.data[j];
 				k++;
 			}
 		}
@@ -201,38 +202,49 @@ export function getSelectedAreaData(editor: Editor): ImageData | undefined  {
 
 //получить массив индексов элементов в массиве Unit8ClampedArray канваса для пикселей, попавших в выделенную область
 export function getIndexes(editor: Editor): Array<number> {
+	console.log('executing getIndexes function');
 	let arr: Array<number> = [];
 	if (editor.selectedObject !== null) {
-		let startX: number = editor.selectedObject.position.x;
-		let startY: number = editor.selectedObject.position.y;
-		let endY: number = startY + editor.selectedObject.h;
-		let selectionWidth: number = editor.selectedObject.w; 
+		let startX: number = editor.selectedObject!.position.x;
+		let startY: number = editor.selectedObject!.position.y;
+		let endY: number = startY + editor.selectedObject!.h;
+		let selectionWidth: number = editor.selectedObject!.w; 
+		// console.log('startX', startX);
+		// console.log('startY', startY);
+		// console.log('endY', endY);
+		// console.log('selectionWidth', selectionWidth);
 
 		let k: number = 0;
 		for (let i: number = startY; i < endY; i++) {
-			let startRowIndex: number = getPxArrIndex(editor, {x: startX, y: i})
+			let startRowIndex: number = getPxArrIndex(editor, {x: startX, y: i});
+			//console.log('start row index', startRowIndex);
 			for (let j: number = startRowIndex; j < startRowIndex + selectionWidth * 4; j++) {
 				arr[k] = j;
 				k++;
 			}
 		}
 	}
+	//console.log('arr', arr);
 	return arr;
+
 }
 
 //сделать прозрачной выделенную область канваса
 export function makeSelectionBeTransparent(editor: Editor, arr: Array<number>): ImageData {
+	console.log('executing makeSelectionBeTransparent function');
 	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
-	for (let i: number = 0; i < newPxArray.length; i += 4) {
-		if (arr.indexOf(i) == -1)
-			continue;					
-		newPxArray[i + 3] = 0; 
+	//let newPxArray: Uint8ClampedArray = editor.canvas.data;
+	// console.log('slice done');
+	// console.log('arr.length', arr.length);
+	for (let i: number = 0; i < arr.length; i += 4) {
+		newPxArray[arr[i] + 3] = 0; 
 	}
 	return new ImageData(newPxArray, editor.canvas.width, editor.canvas.height);
 }
 
 //перекрасить в белый цвет все, кроме выделенной области
 export function whitenAllExceptSelection(editor: Editor, arr: Array<number>): ImageData {
+	
 	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
 	for (let i: number = 0; i < newPxArray.length; i += 4) {
 		if (arr.indexOf(i) !== -1)
@@ -246,16 +258,19 @@ export function whitenAllExceptSelection(editor: Editor, arr: Array<number>): Im
 }
 
 //вырезать выделенную область
-export function cut(editor: Editor): Editor {
+export function cut(editor: Editor, payload: Object): Editor {
+	console.log('executing cut function');
+	//let editorCopy = {...editor};
 	return {
 		...editor,
+		//canvas: makeSelectionBeTransparent(editorCopy, getIndexes(editorCopy)),
 		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)),
 		selectedObject: null,
 	}
 }
 
 //обрезать изображение по выделенной области
-export function crop(editor: Editor): Editor {
+export function crop(editor: Editor, payload: Object): Editor {
 	return {
 		...editor,
 		canvas: whitenAllExceptSelection(editor, getIndexes(editor)),
