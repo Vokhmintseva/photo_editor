@@ -189,19 +189,24 @@ export function getSelectedAreaData(editor: Editor): ImageData | undefined  {
 		let endY: number = startY + editorCopy.selectedObject.h;
 		let selectionWidth: number = editorCopy.selectedObject.w;
 		let selectionHeight: number = editorCopy.selectedObject.h;
-		let newImgData: ImageData = new ImageData(selectionWidth, selectionHeight);
+	    let pixelArrayLength: number = selectionWidth * selectionHeight * 4;
+		let bufferArray = new Uint8Array(pixelArrayLength);
+			
 		let k: number = 0; 
 		for (let i: number = startY; i < endY; i++) {
 			let startRowIndex: number = getPxArrIndex(editor, {x: startX, y: i})
 			for (let j: number = startRowIndex; j < startRowIndex + selectionWidth * 4; j++) {
-				newImgData.data[k] = editorCopy.canvas.data[j];
+				bufferArray[k] = editorCopy.canvas.data[j];
 				k++;
 			}
 		}
-		return newImgData;
+		return new ImageData(new Uint8ClampedArray(bufferArray.buffer), selectionWidth, selectionHeight);
 	} 
 	return undefined
 }
+
+
+
 
 //получить массив индексов элементов в массиве Unit8ClampedArray канваса для пикселей, попавших в выделенную область
 export function getIndexes(editor: Editor): Array<number> {
