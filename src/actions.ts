@@ -179,7 +179,10 @@ export function getPxArrIndex(editor: Editor, p: Point): number {
 
 //получить выделенную область канваса в виде ImageData
 export function getSelectedAreaData(editor: Editor): ImageData | undefined  {
+	console.log('in getSelectedAreaData function');
+	console.log('editor.selectedObject !== null', editor.selectedObject !== null);
 	if (editor.selectedObject !== null) {
+	
 		let editorCopy = JSON.parse(JSON.stringify(editor));
 		let startX: number = editorCopy.selectedObject.position.x;
 		let startY: number = editorCopy.selectedObject.position.y;
@@ -268,6 +271,8 @@ export function cut(editor: Editor, payload: Object): Editor {
 		selectedObject: null,
 	}
 }
+
+
 
 //обрезать изображение по выделенной области
 export function crop(editor: Editor, payload: Object): Editor {
