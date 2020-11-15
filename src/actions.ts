@@ -47,7 +47,7 @@ export function resizeCanvas(editor: Editor, payload: {newWidth: number, newHeig
 // }
 
 export function addImage(editor: Editor, payload: {newImage: ImageData}): Editor {
-	console.log('new image', payload.newImage);
+	//console.log('new image', payload.newImage);
 	return {
 		...editor,
 		canvas: payload.newImage,
@@ -179,8 +179,8 @@ export function getPxArrIndex(editor: Editor, p: Point): number {
 
 //получить выделенную область канваса в виде ImageData
 export function getSelectedAreaData(editor: Editor): ImageData | undefined  {
-	console.log('in getSelectedAreaData function');
-	console.log('editor.selectedObject !== null', editor.selectedObject !== null);
+	//console.log('in getSelectedAreaData function');
+	// console.log('editor.selectedObject !== null', editor.selectedObject !== null);
 	if (editor.selectedObject !== null) {
 	
 		let editorCopy = JSON.parse(JSON.stringify(editor));
@@ -239,7 +239,7 @@ export function getIndexes(editor: Editor): Array<number> {
 
 //сделать прозрачной выделенную область канваса
 export function makeSelectionBeTransparent(editor: Editor, arr: Array<number>): ImageData {
-	console.log('executing makeSelectionBeTransparent function');
+	//console.log('executing makeSelectionBeTransparent function');
 	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
 	//let newPxArray: Uint8ClampedArray = editor.canvas.data;
 	// console.log('slice done');
@@ -267,7 +267,7 @@ export function whitenAllExceptSelection(editor: Editor, arr: Array<number>): Im
 
 //вырезать выделенную область
 export function cut(editor: Editor, payload: Object): Editor {
-	console.log('executing cut function');
+	//console.log('executing cut function');
 	//let editorCopy = {...editor};
 	return {
 		...editor,

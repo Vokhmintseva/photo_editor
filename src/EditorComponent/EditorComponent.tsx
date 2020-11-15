@@ -27,7 +27,7 @@ function EditorComponent(editProps: EditorComponentProps) {
     }
 
     function onMouseDownHandler(event: any) {
-        console.log('in onMouseDownHandler function');
+        //console.log('in onMouseDownHandler function');
         //mouseDownCoord = {x: event.clientX, y: event.clientY};
         setIsMousePressed(true);
         setMouseDownCoords({x: event.clientX, y: event.clientY});
@@ -39,8 +39,13 @@ function EditorComponent(editProps: EditorComponentProps) {
     const onMouseMoveHandler = function (event: any) {
         if (isMousePressed) {
             const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
-            setSelectionParams({start: {x: selectionCoords[0].x, y: selectionCoords[0].y}, end: {x: selectionCoords[1].x, y: selectionCoords[1].y}});
+            //setSelectionParams({start: {x: selectionCoords[0].x, y: selectionCoords[0].y}, end: {x: selectionCoords[1].x, y: selectionCoords[1].y}});
             //console.log('selectionParams', setSelectionParams);
+            const svg: HTMLElement = svgRef.current!;
+            svg.style.left = selectionCoords[0].x.toString();
+            svg.style.top = selectionCoords[0].y.toString();
+            svg.style.width = (selectionCoords[1].x - selectionCoords[0].x).toString();
+            svg.style.height = (selectionCoords[1].y - selectionCoords[0].y).toString();
         }
     }
 
@@ -63,29 +68,17 @@ function EditorComponent(editProps: EditorComponentProps) {
         const upClientY = event.clientY;
         let downClientX = mouseDownCoords.x;
         let downClientY = mouseDownCoords.y;
-        console.log('in onMouseUpHandler function, isOnSvgClick is', isOnSvgClick);
-        console.log('upClientY', upClientY);
-        console.log('mouseDownCoords.y', mouseDownCoords.y);
-        console.log('condition', (upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && !isOnSvgClick);
         if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && !isOnSvgClick) {
-            
+           
             const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
             const startX = selectionCoords[0].x as number;
             const startY = selectionCoords[0].y as number;
             const endX = selectionCoords[1].x as number;
             const endY = selectionCoords[1].y as number;
-            // if (startX >= canvasCoord.width || startY >= canvasCoord.y + canvasCoord.height) {
-            //     return;
-            // }
-            console.log('dispatching area selection');
-            console.log('before dispatch - startX', startX);
-            console.log('before dispatch - startY', startY - canvasCoord.top );
             dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoord.top}, endPoint: {x: endX, y: endY - canvasCoord.top}});
         }
         
         if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && isOnSvgClick) {
-            
-            console.log('making this');
             let newImgData: any = getSelectionImgData();
             newImgData = getSelectionImgData();
             setIsMousePressed(false);
@@ -95,8 +88,7 @@ function EditorComponent(editProps: EditorComponentProps) {
             const newData = context.getImageData(0, 0, canv.width, canv.height);
             setIsOnSvgClick(false);
             dispatch(addImage, {newImage: newData});
-
-
+            
         }
     }
     
@@ -104,7 +96,7 @@ function EditorComponent(editProps: EditorComponentProps) {
         console.log('in onMouseDownSvgHandler function');
         setIsOnSvgClick(true);
         setIsMousePressed(false);
-        // event.stopPropagation();
+        event.stopPropagation();
     }
 
     // const onMouseUpSvgHandler = function (event: any) {
