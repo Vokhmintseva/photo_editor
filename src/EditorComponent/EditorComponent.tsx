@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import {Editor} from '../model'
 import Toolbar from '../Toolbar/Toolbar';
 import { dispatch, getSelectionImgData} from '../reducer';
-import {selectArea, cut, getSelectedAreaData, addImage} from '../actions';
+import {selectArea, cut, getSelectedAreaData, addImage, deSelectArea} from '../actions';
 import Video from '../UI/Video';
 //import Svg from '../UI/Svg/Svg';
 import './EditorComponent.css';
@@ -14,30 +14,46 @@ interface EditorComponentProps {
 function EditorComponent(editProps: EditorComponentProps) {
     console.log('rendering');
     const [isVideoPlaying, setVideoPlaying] = useState(false);
-    const [isOnSvgClick, setIsOnSvgClick] = useState(false);
-    const [selectionParams, setSelectionParams] = useState({start: {x: 0, y: 0}, end: {x: 0, y: 0}});
-    const [isMousePressed, setIsMousePressed] = useState(false);
-    const [mouseDownCoords, setMouseDownCoords] = useState({x: 0, y: 0});
+    
+    let isMousePressed = false;
+    let isOnSvgClick = false;
+    let mouseDownCoords = {x: 0, y: 0};
+    let selectionParams = {startX: 0, startY: 0, width: 0, height: 0}; 
+    if (editProps.editor.selectedObject !== null) {
+        selectionParams = {
+                            startX: editProps.editor.selectedObject.position.x, 
+                            startY: editProps.editor.selectedObject.position.y,
+                            width: editProps.editor.selectedObject.w,
+                            height: editProps.editor.selectedObject.h,
+                          }
+    }                      
+
     let canvasRef = useRef(null);
     let svgRef = useRef(null);
     
-    
-    function TogglePlayngState() {
+        function TogglePlayngState() {
         setVideoPlaying(!isVideoPlaying);
     }
 
+    const onMouseDownSvgHandler = function (event: any) {
+        console.log('in onMouseDownSvgHandler function');
+        isOnSvgClick = true;
+        // //isMousePressed = false;
+        // event.stopPropagation();
+    }
+    
     function onMouseDownHandler(event: any) {
-        //console.log('in onMouseDownHandler function');
-        //mouseDownCoord = {x: event.clientX, y: event.clientY};
-        setIsMousePressed(true);
-        setMouseDownCoords({x: event.clientX, y: event.clientY});
-        if (selectionParams !== {start: {x: 0, y: 0}, end: {x: 0, y: 0}}) {
-            setSelectionParams({start: {x: 0, y: 0}, end: {x: 0, y: 0}});
-        }
+        console.log('in onMouseDownHandler function');
+        isMousePressed = true;
+        mouseDownCoords = {x: event.clientX, y: event.clientY};
+        // if (!isOnSvgClick) {
+        //     mouseDownCoords = {x: event.clientX, y: event.clientY};
+        // }    
+
     }
     
     const onMouseMoveHandler = function (event: any) {
-        if (isMousePressed) {
+        if (isMousePressed && !isOnSvgClick) {
             const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
             //setSelectionParams({start: {x: selectionCoords[0].x, y: selectionCoords[0].y}, end: {x: selectionCoords[1].x, y: selectionCoords[1].y}});
             //console.log('selectionParams', setSelectionParams);
@@ -61,53 +77,56 @@ function EditorComponent(editProps: EditorComponentProps) {
     }
 
     const onMouseUpHandler = function (event: any) {
-        setIsMousePressed(false);
+        console.log('in onMouseUpHandler function');
         const canv: HTMLCanvasElement = canvasRef.current!;
-        const canvasCoord = canv.getBoundingClientRect();
+        const canvasCoords = canv.getBoundingClientRect();
         const upClientX = event.clientX;
         const upClientY = event.clientY;
-        let downClientX = mouseDownCoords.x;
-        let downClientY = mouseDownCoords.y;
+        
+        //делаем выделение
         if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && !isOnSvgClick) {
-           
+            console.log('creating selected area');
             const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
             const startX = selectionCoords[0].x as number;
             const startY = selectionCoords[0].y as number;
             const endX = selectionCoords[1].x as number;
             const endY = selectionCoords[1].y as number;
-            dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoord.top}, endPoint: {x: endX, y: endY - canvasCoord.top}});
+            dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
         }
         
+        //делаем перемещение
         if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && isOnSvgClick) {
+            console.log('upClientX', upClientX);
+            console.log('mouseDownCoords.x', mouseDownCoords.x);
+            console.log('upClientY', upClientY);
+            console.log('mouseDownCoords.y', mouseDownCoords.y);
+            console.log('replacement of selected area');
             let newImgData: any = getSelectionImgData();
-            newImgData = getSelectionImgData();
-            setIsMousePressed(false);
+            //newImgData = getSelectionImgData();
+            //isMousePressed = false;
             const canv: HTMLCanvasElement = canvasRef.current!;
             var context = canv.getContext('2d') as CanvasRenderingContext2D;
             context.putImageData(newImgData, upClientX, upClientY, 0, 0, canv.width, canv.height);
             const newData = context.getImageData(0, 0, canv.width, canv.height);
-            setIsOnSvgClick(false);
+            //isOnSvgClick = false;
             dispatch(addImage, {newImage: newData});
-            
         }
+
+        console.log('upClientX', upClientX);
+        console.log('mouseDownCoords.x', mouseDownCoords.x);
+        console.log('upClientY', upClientY);
+        console.log('mouseDownCoords.y', mouseDownCoords.y);
+        console.log('editProps.editor.selectedObject !== null', editProps.editor.selectedObject !== null);
+        console.log('isOnSvgClick', isOnSvgClick);
+        
+        if ((upClientX == mouseDownCoords.x) && (upClientY == mouseDownCoords.y) && editProps.editor.selectedObject !== null && !isOnSvgClick) {
+            console.log('dispatching deselect area');
+            dispatch(deSelectArea, {});
+        }
+        isOnSvgClick = false; 
+        isMousePressed = false;
     }
     
-    const onMouseDownSvgHandler = function (event: any) {
-        console.log('in onMouseDownSvgHandler function');
-        setIsOnSvgClick(true);
-        setIsMousePressed(false);
-        event.stopPropagation();
-    }
-
-    // const onMouseUpSvgHandler = function (event: any) {
-    //     setIsOnSvgClick(false);
-    //     let newImgData = getSelectionImgData();
-    //     console.log('newImgData', newImgData);
-    //     setIsMousePressed(false);
-    //     // event.stopPropagation();
-    //     // dispatch(cut, {});
-    // }
-
     useEffect(() => { //функция запутится после рендеринга
         const canv: HTMLCanvasElement = canvasRef.current!;
         const svg: HTMLElement = svgRef.current!;
@@ -149,10 +168,10 @@ function EditorComponent(editProps: EditorComponentProps) {
                     style={{
                         position: 'absolute',
                         border: '1px dashed black',
-                        top: `${selectionParams.start.y ?? 0}`,
-                        left: `${selectionParams.start.x ?? 0}`,
-                        width: `${selectionParams.end.x - selectionParams.start.x ?? 0}`,
-                        height: `${selectionParams.end.y - selectionParams.start.y ?? 0}`
+                        top: `${selectionParams.startY + 31}`,
+                        left: `${selectionParams.startX}`,
+                        width: `${selectionParams.width}`,
+                        height: `${selectionParams.height}`,
                     }}
 
                 >
