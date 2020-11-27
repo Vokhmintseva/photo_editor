@@ -4,7 +4,6 @@ import Toolbar from '../Toolbar/Toolbar';
 import { dispatch, getSelectionImgData} from '../reducer';
 import {selectArea, cut, getSelectedAreaData, addImage, deSelectArea} from '../actions';
 import Video from '../UI/Video';
-//import Svg from '../UI/Svg/Svg';
 import './EditorComponent.css';
 
 interface EditorComponentProps {
@@ -14,10 +13,13 @@ interface EditorComponentProps {
 function EditorComponent(editProps: EditorComponentProps) {
     console.log('rendering');
     const [isVideoPlaying, setVideoPlaying] = useState(false);
+    //const [selectionImgData, getSelectionImgData] = useState({} as ImageData);
+    
     
     let isMousePressed = false;
-    let isOnSvgClick = false;
+    let isOnSelectionClick = false;
     let mouseDownCoords = {x: 0, y: 0};
+    
     let selectionParams = {startX: 0, startY: 0, width: 0, height: 0}; 
     if (editProps.editor.selectedObject !== null) {
         selectionParams = {
@@ -26,42 +28,45 @@ function EditorComponent(editProps: EditorComponentProps) {
                             width: editProps.editor.selectedObject.w,
                             height: editProps.editor.selectedObject.h,
                           }
+        
     }                      
 
     let canvasRef = useRef(null);
-    let svgRef = useRef(null);
+    let selCanvasRef = useRef(null);
     
         function TogglePlayngState() {
         setVideoPlaying(!isVideoPlaying);
     }
 
-    const onMouseDownSvgHandler = function (event: any) {
+    const onMouseDownSelectionHandler = function (event: any) {
         console.log('in onMouseDownSvgHandler function');
-        isOnSvgClick = true;
-        // //isMousePressed = false;
-        // event.stopPropagation();
+        isOnSelectionClick = true;
     }
     
     function onMouseDownHandler(event: any) {
         console.log('in onMouseDownHandler function');
         isMousePressed = true;
         mouseDownCoords = {x: event.clientX, y: event.clientY};
-        // if (!isOnSvgClick) {
-        //     mouseDownCoords = {x: event.clientX, y: event.clientY};
-        // }    
-
     }
     
     const onMouseMoveHandler = function (event: any) {
-        if (isMousePressed && !isOnSvgClick) {
+        
+        const selCanv: HTMLCanvasElement = selCanvasRef.current!;
+        if (isMousePressed && !isOnSelectionClick) {
             const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
-            //setSelectionParams({start: {x: selectionCoords[0].x, y: selectionCoords[0].y}, end: {x: selectionCoords[1].x, y: selectionCoords[1].y}});
-            //console.log('selectionParams', setSelectionParams);
-            const svg: HTMLElement = svgRef.current!;
-            svg.style.left = selectionCoords[0].x.toString();
-            svg.style.top = selectionCoords[0].y.toString();
-            svg.style.width = (selectionCoords[1].x - selectionCoords[0].x).toString();
-            svg.style.height = (selectionCoords[1].y - selectionCoords[0].y).toString();
+            selCanv.style.left = selectionCoords[0].x + 'px';
+            selCanv.style.top = selectionCoords[0].y + 'px';
+            selCanv.style.width = selectionCoords[1].x - selectionCoords[0].x + 'px';
+            selCanv.style.height = selectionCoords[1].y - selectionCoords[0].y + 'px';
+        }
+        if (isOnSelectionClick) {
+            
+            selCanv.style.left = event.clientX + 'px';
+            selCanv.style.top = event.clientY + 'px';
+            selCanv.style.width = selectionParams.width + 'px';
+            selCanv.style.height = selectionParams.height + 'px';
+            
+            
         }
     }
 
@@ -84,7 +89,7 @@ function EditorComponent(editProps: EditorComponentProps) {
         const upClientY = event.clientY;
         
         //делаем выделение
-        if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && !isOnSvgClick) {
+        if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && !isOnSelectionClick) {
             console.log('creating selected area');
             const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
             const startX = selectionCoords[0].x as number;
@@ -95,56 +100,62 @@ function EditorComponent(editProps: EditorComponentProps) {
         }
         
         //делаем перемещение
-        if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && isOnSvgClick) {
-            console.log('upClientX', upClientX);
-            console.log('mouseDownCoords.x', mouseDownCoords.x);
-            console.log('upClientY', upClientY);
-            console.log('mouseDownCoords.y', mouseDownCoords.y);
-            console.log('replacement of selected area');
-            let newImgData: any = getSelectionImgData();
-            //newImgData = getSelectionImgData();
-            //isMousePressed = false;
+        if ((upClientX !== mouseDownCoords.x) && (upClientY !== mouseDownCoords.y) && isOnSelectionClick) {
+           
             const canv: HTMLCanvasElement = canvasRef.current!;
             var context = canv.getContext('2d') as CanvasRenderingContext2D;
-            context.putImageData(newImgData, upClientX, upClientY, 0, 0, canv.width, canv.height);
+            let selectedImgData: any = context.getImageData(selectionParams.startX, selectionParams.startY, selectionParams.width, selectionParams.height);
+            context.putImageData(selectedImgData, upClientX, upClientY - canvasCoords.top);
+            const selCanv: HTMLCanvasElement = selCanvasRef.current!;
+            selCanv.style.left = upClientX;
+            selCanv.style.top = upClientY;
+            selCanv.style.width = selectionParams.width.toString();
+            selCanv.style.height = selectionParams.height.toString();
             const newData = context.getImageData(0, 0, canv.width, canv.height);
-            //isOnSvgClick = false;
             dispatch(addImage, {newImage: newData});
         }
 
-        console.log('upClientX', upClientX);
-        console.log('mouseDownCoords.x', mouseDownCoords.x);
-        console.log('upClientY', upClientY);
-        console.log('mouseDownCoords.y', mouseDownCoords.y);
-        console.log('editProps.editor.selectedObject !== null', editProps.editor.selectedObject !== null);
-        console.log('isOnSvgClick', isOnSvgClick);
-        
-        if ((upClientX == mouseDownCoords.x) && (upClientY == mouseDownCoords.y) && editProps.editor.selectedObject !== null && !isOnSvgClick) {
+        //снимаем выделение
+        if ((upClientX == mouseDownCoords.x) && (upClientY == mouseDownCoords.y) && editProps.editor.selectedObject !== null && !isOnSelectionClick) {
             console.log('dispatching deselect area');
             dispatch(deSelectArea, {});
         }
-        isOnSvgClick = false; 
+        isOnSelectionClick = false; 
         isMousePressed = false;
     }
     
     useEffect(() => { //функция запутится после рендеринга
         const canv: HTMLCanvasElement = canvasRef.current!;
-        const svg: HTMLElement = svgRef.current!;
+        const selCanv: HTMLCanvasElement = selCanvasRef.current!;
         var context = canv.getContext('2d') as CanvasRenderingContext2D;
+        var selContext = selCanv.getContext('2d') as CanvasRenderingContext2D;
+        
         context.putImageData(editProps.editor.canvas, 0, 0, 0, 0, editProps.editor.canvas.width, editProps.editor.canvas.height);
+        if (editProps.editor.selectedObject !== null) {
+            let selectionImgData = context.getImageData(selectionParams.startX, selectionParams.startY, selectionParams.width, selectionParams.height);
+            console.log('selectionParams.startX', selectionParams.startX);
+            console.log('selectionParams.startY', selectionParams.startY);
+            console.log('selectionParams.width', selectionParams.width);
+            console.log('selectionParams.height', selectionParams.height);
+            selCanv.style.left = selectionParams.startX.toString();
+            selCanv.style.top = selectionParams.startY.toString();
+            selCanv.style.width = selectionParams.width.toString();
+            selCanv.style.height = selectionParams.height.toString();
+            console.log('putting img data on new canvas');
+            selContext.putImageData(selectionImgData, 0, 0, 0, 0, selectionParams.width, selectionParams.height);
+        };
+
         document.addEventListener('mousedown', onMouseDownHandler);
         document.addEventListener('mousemove', onMouseMoveHandler);
         document.addEventListener('mouseup', onMouseUpHandler);
-        svg.addEventListener('mousedown', onMouseDownSvgHandler);
-        //в функции onMouseDownSvgHandler не работает
-        //svg.addEventListener('mouseup', onMouseUpSvgHandler);
+        
+        selCanv.addEventListener('mousedown', onMouseDownSelectionHandler);
         
         return () => {
             document.removeEventListener('mouseup', onMouseUpHandler);
             document.removeEventListener('mousemove', onMouseMoveHandler);
             document.removeEventListener('mousedown', onMouseDownHandler);
-            //svg.removeEventListener('mouseup', onMouseUpSvgHandler);
-            svg.removeEventListener('mousedown', onMouseDownSvgHandler);
+            selCanv.removeEventListener('mousedown', onMouseDownSelectionHandler);
 
         };
     }); 
@@ -155,30 +166,32 @@ function EditorComponent(editProps: EditorComponentProps) {
     return (
         <div>
             <Toolbar editor={editProps.editor} reference={canvasRef} togglePlayingFunc={TogglePlayngState}/>
-            <div>
-                <canvas 
-                    className={canvasStyles.join(' ')}
-                    ref={canvasRef} //React установит .current на этот DOM-узел
-                    width={editProps.editor.canvas.width}
-                    height={editProps.editor.canvas.height}
-                />
-                
-                <svg 
-                    ref={svgRef}
-                    style={{
-                        position: 'absolute',
-                        border: '1px dashed black',
-                        top: `${selectionParams.startY + 31}`,
-                        left: `${selectionParams.startX}`,
-                        width: `${selectionParams.width}`,
-                        height: `${selectionParams.height}`,
-                    }}
+            
+            <canvas 
+                className={canvasStyles.join(' ')}
+                ref={canvasRef} //React установит .current на этот DOM-узел
+                width={editProps.editor.canvas.width}
+                height={editProps.editor.canvas.height}
+                style={{position: 'absolute'}}
+            />
+            
+            <canvas
+                ref={selCanvasRef}
+                style={{
+                    position: 'absolute',
+                    border: '1px dashed black',
+                    top: `${selectionParams.startY + 31}`,
+                    left: `${selectionParams.startX}`,
+                    width: `${selectionParams.width}`,
+                    height: `${selectionParams.height}`,
+                    //zIndex: 50
+                }}
 
-                >
-                </svg>
-                
-                <Video editor={editProps.editor} reference={canvasRef}/>
-            </div>
+            ></canvas>
+            
+            
+            {/* <Video editor={editProps.editor} reference={canvasRef}/> */}
+            
         </div>
     )
 }
