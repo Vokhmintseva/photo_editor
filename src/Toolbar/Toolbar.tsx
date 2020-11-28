@@ -5,12 +5,13 @@ import Select from '../UI/Select/Select';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import SnapShotButton from '../Buttons/SnapShotButton';
-import {applyFilter} from '../actions';
+import {applyFilter, cut, crop, createCanvas} from '../actions';
 import { dispatch } from '../reducer';
 
 interface ToolbarProps {
     editor: Editor,
-    reference: any,
+    canvasReference: any,
+    selCanvasReference: any,
     togglePlayingFunc: () => void,
 }
 
@@ -26,6 +27,15 @@ function Toolbar(toolbarProps: ToolbarProps) {
         dispatch(applyFilter, {filterColor: filter})
     }
     
+    function onClearSelectionHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        dispatch(cut, {});
+    }
+
+    function onSelectionCropHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        dispatch(crop, {});
+    }
+
+
     const select = <Select
         label="Выберите фильтр"
         value={filter}
@@ -40,11 +50,13 @@ function Toolbar(toolbarProps: ToolbarProps) {
 
     return (
         <div className='toolbar'>
-            <OpenButton editor={toolbarProps.editor} reference={toolbarProps.reference}/>
-            <SaveButton editor={toolbarProps.editor} reference={toolbarProps.reference}/>
+            <OpenButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference}/>
+            <SaveButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference}/>
             {select}
             <button onClick={filterButtonHandler}>Применить фильтр</button>
-            <SnapShotButton editor={toolbarProps.editor} reference={toolbarProps.reference} togglePlayingFunc={toolbarProps.togglePlayingFunc}/>
+            <SnapShotButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference} togglePlayingFunc={toolbarProps.togglePlayingFunc}/>
+            <button onClick={onClearSelectionHandler}>Clear sel</button>
+            <button onClick={onSelectionCropHandler}>Crop sel</button>
         </div>
     )
 }

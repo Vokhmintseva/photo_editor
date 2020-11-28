@@ -15,7 +15,6 @@ function EditorComponent(editProps: EditorComponentProps) {
     const [isVideoPlaying, setVideoPlaying] = useState(false);
     //const [selectionImgData, getSelectionImgData] = useState({} as ImageData);
     
-    
     let isMousePressed = false;
     let isOnSelectionClick = false;
     let mouseDownCoords = {x: 0, y: 0};
@@ -28,17 +27,16 @@ function EditorComponent(editProps: EditorComponentProps) {
                             width: editProps.editor.selectedObject.w,
                             height: editProps.editor.selectedObject.h,
                           }
-        
     }                      
 
     let canvasRef = useRef(null);
     let selCanvasRef = useRef(null);
     
-        function TogglePlayngState() {
+    function TogglePlayngState() {
         setVideoPlaying(!isVideoPlaying);
     }
 
-    const onMouseDownSelectionHandler = function (event: any) {
+    const onMouseDownSelectionHandler = function () {
         console.log('in onMouseDownSvgHandler function');
         isOnSelectionClick = true;
     }
@@ -47,11 +45,17 @@ function EditorComponent(editProps: EditorComponentProps) {
         console.log('in onMouseDownHandler function');
         isMousePressed = true;
         mouseDownCoords = {x: event.clientX, y: event.clientY};
+        if (!isOnSelectionClick) {
+            const selCanv: HTMLCanvasElement = selCanvasRef.current!;
+            var selContext = selCanv.getContext('2d') as CanvasRenderingContext2D;
+            selContext.clearRect(0, 0, selCanv.width, selCanv.height);
+        }
     }
     
     const onMouseMoveHandler = function (event: any) {
         
         const selCanv: HTMLCanvasElement = selCanvasRef.current!;
+        //делаем выделение
         if (isMousePressed && !isOnSelectionClick) {
             const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
             selCanv.style.left = selectionCoords[0].x + 'px';
@@ -59,14 +63,12 @@ function EditorComponent(editProps: EditorComponentProps) {
             selCanv.style.width = selectionCoords[1].x - selectionCoords[0].x + 'px';
             selCanv.style.height = selectionCoords[1].y - selectionCoords[0].y + 'px';
         }
+        //делаем перетаскивание
         if (isOnSelectionClick) {
-            
             selCanv.style.left = event.clientX + 'px';
             selCanv.style.top = event.clientY + 'px';
             selCanv.style.width = selectionParams.width + 'px';
             selCanv.style.height = selectionParams.height + 'px';
-            
-            
         }
     }
 
@@ -115,10 +117,13 @@ function EditorComponent(editProps: EditorComponentProps) {
             dispatch(addImage, {newImage: newData});
         }
 
-        //снимаем выделение
+        //снимаем выделение по клику в пределах канваса
         if ((upClientX == mouseDownCoords.x) && (upClientY == mouseDownCoords.y) && editProps.editor.selectedObject !== null && !isOnSelectionClick) {
-            console.log('dispatching deselect area');
-            dispatch(deSelectArea, {});
+            
+            if (upClientX <= editProps.editor.canvas.width && upClientY > 31) {
+                console.log('dispatching deselect area');
+                dispatch(deSelectArea, {});
+            }
         }
         isOnSelectionClick = false; 
         isMousePressed = false;
@@ -126,29 +131,24 @@ function EditorComponent(editProps: EditorComponentProps) {
     
     useEffect(() => { //функция запутится после рендеринга
         const canv: HTMLCanvasElement = canvasRef.current!;
-        const selCanv: HTMLCanvasElement = selCanvasRef.current!;
         var context = canv.getContext('2d') as CanvasRenderingContext2D;
+        const selCanv: HTMLCanvasElement = selCanvasRef.current!;
         var selContext = selCanv.getContext('2d') as CanvasRenderingContext2D;
-        
+
+  
         context.putImageData(editProps.editor.canvas, 0, 0, 0, 0, editProps.editor.canvas.width, editProps.editor.canvas.height);
         if (editProps.editor.selectedObject !== null) {
             let selectionImgData = context.getImageData(selectionParams.startX, selectionParams.startY, selectionParams.width, selectionParams.height);
-            console.log('selectionParams.startX', selectionParams.startX);
-            console.log('selectionParams.startY', selectionParams.startY);
-            console.log('selectionParams.width', selectionParams.width);
-            console.log('selectionParams.height', selectionParams.height);
-            selCanv.style.left = selectionParams.startX.toString();
-            selCanv.style.top = selectionParams.startY.toString();
-            selCanv.style.width = selectionParams.width.toString();
-            selCanv.style.height = selectionParams.height.toString();
-            console.log('putting img data on new canvas');
-            selContext.putImageData(selectionImgData, 0, 0, 0, 0, selectionParams.width, selectionParams.height);
+            selCanv.setAttribute('top', selectionParams.startY.toString());
+            selCanv.setAttribute('left', selectionParams.startX.toString());
+            selCanv.setAttribute('width', selectionParams.width.toString());
+            selCanv.setAttribute('height', selectionParams.height.toString());
+            selContext.putImageData(selectionImgData, 0, 0);
         };
 
         document.addEventListener('mousedown', onMouseDownHandler);
         document.addEventListener('mousemove', onMouseMoveHandler);
         document.addEventListener('mouseup', onMouseUpHandler);
-        
         selCanv.addEventListener('mousedown', onMouseDownSelectionHandler);
         
         return () => {
@@ -156,7 +156,6 @@ function EditorComponent(editProps: EditorComponentProps) {
             document.removeEventListener('mousemove', onMouseMoveHandler);
             document.removeEventListener('mousedown', onMouseDownHandler);
             selCanv.removeEventListener('mousedown', onMouseDownSelectionHandler);
-
         };
     }); 
     
@@ -165,14 +164,14 @@ function EditorComponent(editProps: EditorComponentProps) {
          
     return (
         <div>
-            <Toolbar editor={editProps.editor} reference={canvasRef} togglePlayingFunc={TogglePlayngState}/>
+            <Toolbar editor={editProps.editor} canvasReference={canvasRef} selCanvasReference={selCanvasRef} togglePlayingFunc={TogglePlayngState}/>
             
-            <canvas 
+            <canvas  
                 className={canvasStyles.join(' ')}
                 ref={canvasRef} //React установит .current на этот DOM-узел
                 width={editProps.editor.canvas.width}
                 height={editProps.editor.canvas.height}
-                style={{position: 'absolute'}}
+                style={{position: 'absolute', border: '1px black',}}
             />
             
             <canvas
@@ -180,13 +179,11 @@ function EditorComponent(editProps: EditorComponentProps) {
                 style={{
                     position: 'absolute',
                     border: '1px dashed black',
-                    top: `${selectionParams.startY + 31}`,
+                    top: `${selectionParams.startY}`,
                     left: `${selectionParams.startX}`,
                     width: `${selectionParams.width}`,
                     height: `${selectionParams.height}`,
-                    //zIndex: 50
                 }}
-
             ></canvas>
             
             
