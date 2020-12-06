@@ -51,6 +51,7 @@ export function addImage(editor: Editor, payload: {newImage: ImageData}): Editor
 	return {
 		...editor,
 		canvas: payload.newImage,
+		selectedObject: null,
 	}
 }
 
@@ -88,7 +89,7 @@ export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint
 		...editor,
 		selectedObject: {
 			type: 'selectedArea',
-			//pixelArray: getSelectedAreaData(editor), 
+			pixelArray: getImageDataByCoords(editor, payload.startPoint, payload.endPoint), 
 			position: {
 				x: Math.min(payload.startPoint.x, payload.endPoint.x),
 				y: Math.min(payload.startPoint.y, payload.endPoint.y)
@@ -178,8 +179,27 @@ export function getPxArrIndex(editor: Editor, p: Point): number {
 	return index;
 }
 
+export function getImageDataByCoords(editor: Editor, startPoint: Point, endPoint: Point): ImageData  {
+	let selectionWidth: number = endPoint.x - startPoint.x;
+	let selectionHeight: number = endPoint.y - startPoint.y;
+	let pixelArrayLength: number = selectionWidth * selectionHeight * 4;
+	let bufferArray = new Uint8Array(pixelArrayLength);
+	let k: number = 0; 
+	for (let y: number = startPoint.y - 1; y < endPoint.y - 1; y++) {
+		for (let x: number = startPoint.x - 1; x < endPoint.x - 1; x++) {
+			let index: number = getPxArrIndex(editor, {x, y})
+			for (let i = index; i < index + 4; i++) {
+				bufferArray[k] = editor.canvas.data[i];
+				k++;
+			}
+		}
+	}
+	return new ImageData(new Uint8ClampedArray(bufferArray.buffer), selectionWidth, selectionHeight);
+}
+
+
 //получить выделенную область канваса в виде ImageData
-export function getSelectedAreaData(editor: Editor): ImageData  {
+export function getImageDataOfSelectedArea(editor: Editor): ImageData  {
 	let selectedObj: EditorObject = editor.selectedObject!;
 	let startX: number = selectedObj.position.x - 1;
 	let startY: number = selectedObj.position.y - 1;

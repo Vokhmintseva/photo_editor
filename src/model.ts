@@ -13,7 +13,7 @@ export type EditorObject = {
 
 export type SelectedArea = EditorObject & {
 	type: 'selectedArea',
-	//pixelArray: ImageData
+	pixelArray: ImageData
 }
 
 export type TextObject = EditorObject & {

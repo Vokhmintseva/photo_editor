@@ -2,7 +2,7 @@ import React, {useRef, useEffect, useState, useContext}  from 'react';
 import {Editor} from '../../model';
 import './SelectedArea.css';
 import {dispatch, getSelectionImgData} from '../../reducer';
-import {dropSelection, addImage} from '../../actions';
+import {dropSelection, addImage, isSelectedArea, deSelectArea} from '../../actions';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 
 interface SelectedAreaProps {
@@ -14,11 +14,43 @@ const SelectedArea = (props: SelectedAreaProps) => {
     
     let isMousePressed = false;
     let mouseDownCoords = {x: 0, y: 0};
+    let mouseUpCoords = {x: 0, y: 0};
     let offset = {x: 0, y: 0};
+    let wasSelectionReplaced = false;
     let selCanvasRef = useRef(null);
 
+    function onMouseDownHandler(event: any) {
+        // if (event.defaultPrevented) {
+        //     return;
+        // }
+        
+        
+        let context = canvas!.getContext('2d') as CanvasRenderingContext2D;
+        if (isSelectedArea(props.editor.selectedObject) && wasSelectionReplaced) {
+            console.log('SEL CANVAS in on Mouse Down Handler function');
+            let selAreaImgData: ImageData = props.editor.selectedObject.pixelArray;
+            context.putImageData(
+                selAreaImgData, 
+                mouseUpCoords.x,
+                mouseUpCoords.y,
+                0,
+                0,
+                props.editor.selectedObject!.w,
+                props.editor.selectedObject!.h
+            );
+            const newData = context.getImageData(0, 0, canvas!.width, canvas!.height);
+            const selCanv: HTMLCanvasElement = selCanvasRef.current!;
+            console.log('add image , deselect')
+            dispatch(addImage, {newImage: newData});
+            //dispatch(deSelectArea, {});
+        }
+
+            //dispatch(deSelectArea, {});
+        event.preventDefault();
+    }
+  
     function onMouseDownSelectionHandler(event: any) {
-        console.log('SEL CANVAS in onMouseDownHandler function');
+        console.log('SEL CANVAS in onMouseDownSelectionHandler function');
         const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
         const selCanvasCoords = selCanvas.getBoundingClientRect();
         offset = {x: event.clientX - selCanvasCoords.x, y: event.clientY - selCanvasCoords.y}
@@ -29,27 +61,28 @@ const SelectedArea = (props: SelectedAreaProps) => {
         event.preventDefault();
     }
     
-    const adjustCoords = function (top: number, left: number) {
+    const adjustCoords = function (left: number, top: number): {left: number, top: number} {
         const selCanv: HTMLCanvasElement = selCanvasRef.current!;
-        if (top < canvasCoords.top) {
-            top = canvasCoords.top
-        }
-        if (top + selCanv.height > canvasCoords.bottom) {
-            top = Math.max(canvasCoords.bottom - selCanv.height, canvasCoords.top)
-        }
+        
         if (left < canvasCoords.left) {
             left = canvasCoords.left;
         }
         if (left + selCanv.width > canvasCoords.right) {
             left = canvasCoords.right - selCanv.width;
         }
-        return {top, left}
+        if (top < canvasCoords.top) {
+            top = canvasCoords.top
+        }
+        if (top + selCanv.height > canvasCoords.bottom) {
+            top = Math.max(canvasCoords.bottom - selCanv.height, canvasCoords.top);
+        }
+        return {left, top}
     }
     
     const onMouseMoveSelectionHandler = function (event: any) {
         //делаем перетаскивание
         if (isMousePressed) {
-            let adjustedCoords = adjustCoords(event.clientY - offset.y, event.clientX - offset.x)
+            let adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
             
             const selCanv: HTMLCanvasElement = selCanvasRef.current!;
             selCanv.style.top = adjustedCoords.top + 'px';
@@ -62,11 +95,13 @@ const SelectedArea = (props: SelectedAreaProps) => {
         console.log('SEL CANVAS in onMouseUpHandler function');
         //делаем перемещение
         if (event.clientX !== mouseDownCoords.x && event.clientY !== mouseDownCoords.y) {
+            wasSelectionReplaced = true;
+            mouseUpCoords = {x: event.clientX, y: event.clientY};
             const selCanv: HTMLCanvasElement = selCanvasRef.current!;
-            const selCanvasCoords = selCanv.getBoundingClientRect();
-            let left = event.clientX - offset.x;
-            let top = event.clientY + selCanvasCoords - offset.y;
-            let adjustedCoords = adjustCoords(top, left);
+            const left = event.clientX - offset.x;
+            const top = event.clientY - offset.y;
+            const adjustedCoords = adjustCoords(left, top);
+            mouseUpCoords = {x: adjustedCoords.left, y: +adjustedCoords.top};
             selCanv.style.top = adjustedCoords.top + 'px';
             selCanv.style.left = adjustedCoords.left + 'px';
 
@@ -111,18 +146,25 @@ const SelectedArea = (props: SelectedAreaProps) => {
         const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
         var selContext = selCanvas.getContext('2d') as CanvasRenderingContext2D;
         const canvasCoords = canvas!.getBoundingClientRect();
+        selCanvas.style.display = 'block';
         selCanvas.style.top = props.editor.selectedObject!.position.y + canvasCoords.top - borderWidth + 'px';
         selCanvas.style.left = props.editor.selectedObject!.position.x - borderWidth + 'px';
         selCanvas.setAttribute('width', props.editor.selectedObject!.w.toString());
         selCanvas.setAttribute('height', props.editor.selectedObject!.h.toString());
-        let selAreaImgData: ImageData = getSelectionImgData();
-        selContext.putImageData(selAreaImgData, 0, 0, 0, 0, props.editor.selectedObject!.w, props.editor.selectedObject!.h);
-       // let testImgData = selContext.getImageData(0, 0, selCanvas.width, selCanvas.height);
+        //let selAreaImgData: ImageData = getSelectionImgData();
+        if (isSelectedArea(props.editor.selectedObject)) {
+            let selAreaImgData: ImageData = props.editor.selectedObject.pixelArray;
+            selContext.putImageData(selAreaImgData, 0, 0, 0, 0, props.editor.selectedObject!.w, props.editor.selectedObject!.h);
+        }
         selCanvas.addEventListener('mousedown', onMouseDownSelectionHandler);
+        document.addEventListener('mousedown', onMouseDownHandler);
+       
+        
 
         //функция сработает когда произойдет следующая перерисовка
         return () => {
             selCanvas.removeEventListener('mousedown', onMouseDownSelectionHandler);
+            document.removeEventListener('mousedown', onMouseDownHandler);
         };
     });
     

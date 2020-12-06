@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {Editor} from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
-import { dispatch, getSelectionImgData} from '../../reducer';
-import {selectArea, cut, getSelectedAreaData, addImage, deSelectArea} from '../../actions';
+// import { dispatch, getSelectionImgData} from '../../reducer';
+// import {selectArea, cut, getSelectedAreaData, addImage, deSelectArea} from '../../actions';
 import Video from '../Video/Video';
 import SelectedArea from '../SelectedArea/SelectedArea';
 import Canvas from '../Canvas/Canvas';
@@ -205,7 +205,7 @@ function EditorComponent(props: EditorComponentProps) {
                     }}
                 ></canvas> */}
                 
-                {props.editor.selectedObject &&
+                {props.editor.selectedObject !==null &&
                 <SelectedArea
                     editor={props.editor}
                 />}

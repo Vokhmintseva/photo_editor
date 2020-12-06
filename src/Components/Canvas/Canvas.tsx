@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useContext}  from 'react';
 import {Editor} from '../../model';
 import './Canvas.css';
 import {dispatch} from '../../reducer';
-import {selectArea, deSelectArea} from '../../actions';
+import {selectArea, deSelectArea, isSelectedArea, addImage} from '../../actions';
 
 
 
@@ -15,24 +15,26 @@ function useMakeSelection(canvasRef: any, selRef: any, editor: Editor) {
     let isMousePressed = false;
     let mouseDownCoords = {x: 0, y: 0};
 
-    
-
     function onMouseDownHandler(event: any) {
         if (event.defaultPrevented) {
             return;
         }
+        // if (editor.selectedObject) {
+        //     dispatch(deSelectArea, {});
+        // }
         console.log('in onMouseDownHandler function');
         document.addEventListener('mousemove', onMouseMoveHandler);
         document.addEventListener('mouseup', onMouseUpHandler);
         isMousePressed = true;
         mouseDownCoords = {x: event.clientX, y: event.clientY};
-        if (editor.selectedObject) {
-            console.log('dispatching deSelectArea')
-            dispatch(deSelectArea, {});
-        }
+        // if (editor.selectedObject) {
+        //     console.log('dispatching deSelectArea');
+        //     dispatch(deSelectArea, {});
+        // }
     }
     
     const onMouseMoveHandler = function (event: any) {
+        
         //рисуем выбор выделенной области
         if (event.defaultPrevented) {
             return;
@@ -90,12 +92,12 @@ function useMakeSelection(canvasRef: any, selRef: any, editor: Editor) {
         }
       
         //снимаем выделение по клику в пределах канваса
-        if ((event.clientX == mouseDownCoords.x) && (event.clientY == mouseDownCoords.y) && (editor.selectedObject !== null)) {
-            if (event.clientX <= editor.canvas.width && event.clientY >= canvasCoords.top && event.clientY <= (editor.canvas.height + canvasCoords.top)) {
-                console.log('dispatching deselect area');
-                dispatch(deSelectArea, {});
-            }
-        }
+        // if ((event.clientX == mouseDownCoords.x) && (event.clientY == mouseDownCoords.y) && (editor.selectedObject !== null)) {
+        //     if (event.clientX <= editor.canvas.width && event.clientY >= canvasCoords.top && event.clientY <= (editor.canvas.height + canvasCoords.top)) {
+        //         console.log('dispatching deselect area');
+        //         dispatch(deSelectArea, {});
+        //     }
+        // }
         document.removeEventListener('mousemove', onMouseMoveHandler);
         document.removeEventListener('mouseup', onMouseUpHandler);
     }

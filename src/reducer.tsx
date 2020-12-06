@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
-import {getSelectedAreaData} from './actions';
+import {getImageDataOfSelectedArea} from './actions';
 
 export let editor: Editor = {
     canvas: {} as ImageData,
@@ -22,6 +22,6 @@ export function dispatch<T>(func: { (edtr: Editor, obj: T): Editor }, obj: T): v
 }
 
 export function getSelectionImgData () {
-    let imgData = getSelectedAreaData(editor);  
+    let imgData = getImageDataOfSelectedArea(editor);  
     return imgData;
 }
