@@ -1,16 +1,17 @@
-import React from 'react'
-import {Editor} from '.././model';
-import {addImage} from '../actions'
-import { dispatch } from '../reducer';
-
+import React, {useContext}  from 'react';
+import {Editor} from '../../model';
+import {addImage} from '../../actions';
+import { dispatch } from '../../reducer';
+import {CanvasContext} from '../EditorComponent/EditorComponent';
 
 interface OpenButtonProps {
     editor: Editor,
-    reference: any
+    //reference: any
 }
 
+
 function OpenButton(openButtonProps: OpenButtonProps) {
-        
+    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
         let file: any = e!.target!.files![0];
         const image = new Image();
@@ -19,8 +20,15 @@ function OpenButton(openButtonProps: OpenButtonProps) {
         let url = window.URL.createObjectURL(new Blob(binaryData, {type: "originalFile.type"}));
         image.src = url;
         e.target.value = '';
-        let canvas: HTMLCanvasElement = openButtonProps.reference.current; 
-        let context = canvas!.getContext('2d');
+        
+        
+        //if (canvas !== null) {
+            console.log('canvas width from open button props', canvas!.width);
+            let context = canvas!.getContext('2d');
+        //}
+        
+        
+        
         
         image.onload = () => {
             let imageWidth = image.width;
@@ -28,16 +36,19 @@ function OpenButton(openButtonProps: OpenButtonProps) {
             if (imageWidth > openButtonProps.editor.canvas.width || imageHeight > openButtonProps.editor.canvas.height) {
                 let shouldEnlarge = window.confirm("импортируемая фотография больше по размеру холста. Увеличить полотно до размера фотографии?");
                 if (shouldEnlarge) {
-                    canvas.width = imageWidth;
-                    canvas.height = imageHeight;
+                    canvas!.width = imageWidth;
+                    canvas!.height = imageHeight;
                     context!.drawImage(image, 0, 0);
                 } 
             } else
                 context!.drawImage(image, 0, 0);
-            let newImgData = context!.getImageData(0, 0, canvas.width, canvas.height);
+            let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
             dispatch(addImage, {newImage: newImgData})
         }
     }
+
+
+
 
     return (
         <input type="file" name="myImage" onChange={onImageChange} style={{margin: '5px'}}/>

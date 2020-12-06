@@ -1,7 +1,7 @@
-import React from 'react'
-import {Editor} from '.././model';
-import {addImage} from '../actions'
-import { dispatch } from '../reducer';
+import React from 'react';
+import {Editor} from '../../model';
+import {addImage} from '../../actions';
+import { dispatch } from '../../reducer';
 
 
 interface SnapShotButtonProps {

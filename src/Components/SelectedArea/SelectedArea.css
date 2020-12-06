@@ -1,0 +1,5 @@
+.selCanvas {
+    position: absolute;
+    border: 1px dashed black;
+    display: block;
+}

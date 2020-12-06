@@ -1,5 +1,5 @@
-import React, { useRef} from 'react'
-import {Editor} from '../model'
+import React, { useRef} from 'react';
+import {Editor} from '../../model';
 
 interface SaveButton2Props {
     editor: Editor,

@@ -22,8 +22,6 @@ export function dispatch<T>(func: { (edtr: Editor, obj: T): Editor }, obj: T): v
 }
 
 export function getSelectionImgData () {
-  let imgData = getSelectedAreaData(editor);
-  if (imgData !== undefined) {
-      return imgData
-  } else return undefined;
+    let imgData = getSelectedAreaData(editor);  
+    return imgData;
 }

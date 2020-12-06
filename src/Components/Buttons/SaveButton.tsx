@@ -1,13 +1,16 @@
-import React, { useRef} from 'react'
-import {Editor} from '../model'
+import React, {useContext}  from 'react';
+import {Editor} from '../../model';
+import {CanvasContext} from '../EditorComponent/EditorComponent';
 
 interface SaveButtonProps {
     editor: Editor,
-    reference: any
+    //reference: any
 }
 
+
+
 function SaveButton(saveButtonProps: SaveButtonProps) {
-        
+    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);      
     enum Format {jpeg, png};
     let f = Format.jpeg;
     
@@ -18,8 +21,9 @@ function SaveButton(saveButtonProps: SaveButtonProps) {
     function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
         if (f in Format) {
-            let canvas: HTMLCanvasElement = saveButtonProps.reference.current;
-            let dataURL = canvas.toDataURL(`image/${f}`);
+          
+          //let canvas: HTMLCanvasElement = saveButtonProps.reference.current;
+            let dataURL = canvas!.toDataURL(`image/${f}`);
             let link = document.createElement("a");
             link.href = dataURL;
             link.download = `my-image.${f}`;

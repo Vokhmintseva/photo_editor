@@ -1,18 +1,17 @@
 import React, { useState } from 'react'
-import {Editor} from '.././model'
+import {Editor} from '../../model'
 import './Toolbar.css';
-import Select from '../UI/Select/Select';
+import Select from '../Select/Select';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import SnapShotButton from '../Buttons/SnapShotButton';
-import {applyFilter, cut, crop, createCanvas} from '../actions';
-import { dispatch } from '../reducer';
+import {applyFilter, cut, crop} from '../../actions';
+import { dispatch } from '../../reducer';
 
 interface ToolbarProps {
     editor: Editor,
-    canvasReference: any,
-    selCanvasReference: any,
-    togglePlayingFunc: () => void,
+    
+    //togglePlayingFunc: () => void,
 }
 
 function Toolbar(toolbarProps: ToolbarProps) {
@@ -50,11 +49,11 @@ function Toolbar(toolbarProps: ToolbarProps) {
 
     return (
         <div className='toolbar'>
-            <OpenButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference}/>
-            <SaveButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference}/>
+            <OpenButton editor={toolbarProps.editor} />
+            <SaveButton editor={toolbarProps.editor} />
             {select}
             <button onClick={filterButtonHandler}>Применить фильтр</button>
-            <SnapShotButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference} togglePlayingFunc={toolbarProps.togglePlayingFunc}/>
+            {/* <SnapShotButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference} togglePlayingFunc={toolbarProps.togglePlayingFunc}/> */}
             <button onClick={onClearSelectionHandler}>Clear sel</button>
             <button onClick={onSelectionCropHandler}>Crop sel</button>
         </div>

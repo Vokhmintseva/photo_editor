@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
-import {Editor} from '../model';
-import {addImage} from '../actions'
-import { dispatch } from '../reducer';
+import {Editor} from '../../model';
+import {addImage} from '../../actions'
+import { dispatch } from '../../reducer';
 
 interface VideoProps {
     editor: Editor,

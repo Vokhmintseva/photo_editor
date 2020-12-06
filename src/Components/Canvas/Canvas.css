@@ -1,0 +1,10 @@
+.canvas {
+    position: absolute;
+}
+
+.selection {
+    display: none;
+    position: absolute;
+    border: 1px dashed black;
+}
+

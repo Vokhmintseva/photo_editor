@@ -88,6 +88,7 @@ export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint
 		...editor,
 		selectedObject: {
 			type: 'selectedArea',
+			//pixelArray: getSelectedAreaData(editor), 
 			position: {
 				x: Math.min(payload.startPoint.x, payload.endPoint.x),
 				y: Math.min(payload.startPoint.y, payload.endPoint.y)
@@ -154,13 +155,13 @@ export function setTextSize(editor: Editor, newTextSize: number): Editor {
 }
 
 //переместить выделенную область
-export function dropSelection(editor: Editor, where: Point): Editor {
+export function dropSelection(editor: Editor, payload: {where: Point}): Editor {
 	if (isSelectedArea(editor.selectedObject)) {
 		return {
 			...editor,
 			selectedObject: {
 				...editor.selectedObject,
-				position: where,
+				position: payload.where,
 			}
 		}
 	} else {
@@ -178,31 +179,31 @@ export function getPxArrIndex(editor: Editor, p: Point): number {
 }
 
 //получить выделенную область канваса в виде ImageData
-export function getSelectedAreaData(editor: Editor): ImageData | undefined  {
-	//console.log('in getSelectedAreaData function');
-	// console.log('editor.selectedObject !== null', editor.selectedObject !== null);
-	if (editor.selectedObject !== null) {
+export function getSelectedAreaData(editor: Editor): ImageData  {
+	let selectedObj: EditorObject = editor.selectedObject!;
+	let startX: number = selectedObj.position.x - 1;
+	let startY: number = selectedObj.position.y - 1;
+	let endY: number = startY + selectedObj.h;
+	let endX: number = startX + selectedObj.w;
+	let selectionWidth: number = selectedObj.w;
+	let selectionHeight: number = selectedObj.h;
+	let pixelArrayLength: number = selectionWidth * selectionHeight * 4;
+	let bufferArray = new Uint8Array(pixelArrayLength);
 	
-		let editorCopy = JSON.parse(JSON.stringify(editor));
-		let startX: number = editorCopy.selectedObject.position.x;
-		let startY: number = editorCopy.selectedObject.position.y;
-		let endY: number = startY + editorCopy.selectedObject.h;
-		let selectionWidth: number = editorCopy.selectedObject.w;
-		let selectionHeight: number = editorCopy.selectedObject.h;
-	    let pixelArrayLength: number = selectionWidth * selectionHeight * 4;
-		let bufferArray = new Uint8Array(pixelArrayLength);
-			
-		let k: number = 0; 
-		for (let i: number = startY; i < endY; i++) {
-			let startRowIndex: number = getPxArrIndex(editor, {x: startX, y: i})
-			for (let j: number = startRowIndex; j < startRowIndex + selectionWidth * 4; j++) {
-				bufferArray[k] = editorCopy.canvas.data[j];
+	let k: number = 0; 
+	for (let y: number = startY; y < endY; y++) {
+		for (let x: number = startX; x < endX; x++) {
+			let index: number = getPxArrIndex(editor, {x, y})
+			for (let i = index; i < index + 4; i++) {
+				bufferArray[k] = editor.canvas.data[i];
 				k++;
 			}
 		}
-		return new ImageData(new Uint8ClampedArray(bufferArray.buffer), selectionWidth, selectionHeight);
-	} 
-	return undefined
+	}
+	console.log('new img data has been received')
+	return new ImageData(new Uint8ClampedArray(bufferArray.buffer), selectionWidth, selectionHeight);
+	//} 
+	
 }
 
 

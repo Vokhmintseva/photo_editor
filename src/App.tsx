@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import {Editor} from './model';
-import EditorComponent from './EditorComponent/EditorComponent';
+import EditorComponent from './Components/EditorComponent/EditorComponent';
 
 
 interface AppProps {
