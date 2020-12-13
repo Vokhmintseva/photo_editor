@@ -1,24 +1,20 @@
 import React from 'react';
 import {Editor} from '../../model';
-import {addImage} from '../../actions';
-import { dispatch } from '../../reducer';
 
-
-interface SnapShotButtonProps {
+interface SnapshotButtonProps {
     editor: Editor,
-    reference: any,
-    togglePlayingFunc: () => void,
+    toggleShowCamera: () => void,
 }
 
-function SnapShotButton(snapShotButtonProps: SnapShotButtonProps) {
-     function snapShotClickHandler() {
-        snapShotButtonProps.togglePlayingFunc();
-     }   
-
+function SnapshotButton(props: SnapshotButtonProps) {
+    
+    function snapshotClickHandler() {
+        props.toggleShowCamera();
+    }   
 
     return (
-        <button onClick={snapShotClickHandler}>Snapshot</button>
+        <button onClick={snapshotClickHandler}>Snapshot</button>
     );
 }    
 
-export default SnapShotButton;
+export default SnapshotButton;

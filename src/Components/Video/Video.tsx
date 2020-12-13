@@ -1,15 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, {useEffect, useState, useContext}  from 'react';
 import {Editor} from '../../model';
 import {addImage} from '../../actions'
 import { dispatch } from '../../reducer';
+import {CanvasContext} from '../EditorComponent/EditorComponent';
 
 interface VideoProps {
     editor: Editor,
-    reference: any
+    
 }
 
-function Video (videoProps: VideoProps) {
-    const [isStreaming, toggleIsStreaming] = useState(false);
+function Video (props: VideoProps) {
+    //const [isStreaming, toggleIsStreaming] = useState(false);
     let video: any;
     
     function startWebcam() {
@@ -37,14 +38,20 @@ function Video (videoProps: VideoProps) {
     } 
 
     function snapshot() {
-        let canvas: HTMLCanvasElement = videoProps.reference.current; 
         let context = canvas!.getContext('2d');
         context!.drawImage(video, 0, 0);
-        let newImgData = context!.getImageData(0, 0, canvas.width, canvas.height);
+        let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
         dispatch(addImage, {newImage: newImgData})
         video.srcObject.getVideoTracks()[0].stop();
     }
     
+    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
+    
+    useEffect(() => { //функция запутится после рендеринга
+        var context = canvas!.getContext('2d') as CanvasRenderingContext2D;
+        //const canvasCoords = canvas!.getBoundingClientRect();
+    })
+
     return (
         <div style={{position: 'absolute'}}>
             <video id="video" controls autoPlay></video>

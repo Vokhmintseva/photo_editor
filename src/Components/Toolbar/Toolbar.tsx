@@ -4,21 +4,20 @@ import './Toolbar.css';
 import Select from '../Select/Select';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
-import SnapShotButton from '../Buttons/SnapShotButton';
+import SnapshotButton from '../Buttons/SnapshotButton';
 import {applyFilter, cut, crop} from '../../actions';
 import { dispatch } from '../../reducer';
 
 interface ToolbarProps {
     editor: Editor,
-    
-    //togglePlayingFunc: () => void,
+    toggleShowCamera: () => void,
 }
 
-function Toolbar(toolbarProps: ToolbarProps) {
-    //console.log('rendering toolbar')
+function Toolbar(props: ToolbarProps) {
+    console.log('rendering toolbar')
     const [filter, setFilter] = useState("grey");
     
-    function selectChangeHandler(event: any): void {
+    function selectFilterHandler(event: any): void {
         setFilter(event.target.value)
     }
 
@@ -27,18 +26,23 @@ function Toolbar(toolbarProps: ToolbarProps) {
     }
     
     function onClearSelectionHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        event.stopPropagation();
         dispatch(cut, {});
     }
 
     function onSelectionCropHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        event.stopPropagation();
         dispatch(crop, {});
     }
 
+    function onInsertTextHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+
+    }
 
     const select = <Select
         label="Выберите фильтр"
         value={filter}
-        onChange={selectChangeHandler}
+        onChange={selectFilterHandler}
         options={[
             {text: "grey", value: "grey"},
             {text: "red", value: "red"},
@@ -49,13 +53,15 @@ function Toolbar(toolbarProps: ToolbarProps) {
 
     return (
         <div className='toolbar'>
-            <OpenButton editor={toolbarProps.editor} />
-            <SaveButton editor={toolbarProps.editor} />
+            <OpenButton editor={props.editor} />
+            <SaveButton editor={props.editor} />
             {select}
             <button onClick={filterButtonHandler}>Применить фильтр</button>
-            {/* <SnapShotButton editor={toolbarProps.editor} reference={toolbarProps.canvasReference} togglePlayingFunc={toolbarProps.togglePlayingFunc}/> */}
-            <button onClick={onClearSelectionHandler}>Clear sel</button>
-            <button onClick={onSelectionCropHandler}>Crop sel</button>
+            <SnapshotButton editor={props.editor} toggleShowCamera={props.toggleShowCamera}/>
+            <button onClick={onClearSelectionHandler}>Cut</button>
+            <button onClick={onSelectionCropHandler}>Crop</button>
+            <button onClick={onInsertTextHandler}>A</button>
+
         </div>
     )
 }

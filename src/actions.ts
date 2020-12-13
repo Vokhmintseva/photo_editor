@@ -252,6 +252,7 @@ export function getIndexes(editor: Editor): Array<number> {
 
 //сделать прозрачной выделенную область канваса
 export function makeSelectionBeTransparent(editor: Editor, arr: Array<number>): ImageData {
+	console.log('make selection be transparent calling');
 	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
 	for (let i: number = 0; i < arr.length; i += 4) {
 		newPxArray[arr[i] + 3] = 0; 

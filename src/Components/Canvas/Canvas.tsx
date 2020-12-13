@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useContext}  from 'react';
 import {Editor} from '../../model';
 import './Canvas.css';
 import {dispatch} from '../../reducer';
-import {selectArea, deSelectArea, isSelectedArea, addImage} from '../../actions';
+import {selectArea, deSelectArea, cut} from '../../actions';
 
 
 
@@ -16,21 +16,21 @@ function useMakeSelection(canvasRef: any, selRef: any, editor: Editor) {
     let mouseDownCoords = {x: 0, y: 0};
 
     function onMouseDownHandler(event: any) {
+        const canvasCoord = canvasRef.current!.getBoundingClientRect();
+        if (event.clientY < canvasCoord.top) {
+            return;
+        }
         if (event.defaultPrevented) {
             return;
         }
-        // if (editor.selectedObject) {
-        //     dispatch(deSelectArea, {});
-        // }
+        if (editor.selectedObject) {
+            dispatch(deSelectArea, {});
+        }
         console.log('in onMouseDownHandler function');
         document.addEventListener('mousemove', onMouseMoveHandler);
         document.addEventListener('mouseup', onMouseUpHandler);
         isMousePressed = true;
         mouseDownCoords = {x: event.clientX, y: event.clientY};
-        // if (editor.selectedObject) {
-        //     console.log('dispatching deSelectArea');
-        //     dispatch(deSelectArea, {});
-        // }
     }
     
     const onMouseMoveHandler = function (event: any) {
@@ -70,13 +70,15 @@ function useMakeSelection(canvasRef: any, selRef: any, editor: Editor) {
     }
 
     const onMouseUpHandler = function (event: any) {
+        const canvasCoords = canvasRef.current!.getBoundingClientRect();
+        if (event.clientY < canvasCoords.top) {
+            return;
+        }
         if (event.defaultPrevented) {
-                return;
+            return;
         }
         console.log('in onMouseUpHandler function');
         isMousePressed = false;
-        const canv: HTMLCanvasElement = canvasRef.current!;
-        const canvasCoords = canv.getBoundingClientRect();
         const selection: HTMLDivElement = selRef.current!;
         selection.style.display = 'none';
 
@@ -89,15 +91,8 @@ function useMakeSelection(canvasRef: any, selRef: any, editor: Editor) {
             const endX = selectionCoords.endX + 2 as number;
             const endY = selectionCoords.endY + 2 as number;
             dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
+            
         }
-      
-        //снимаем выделение по клику в пределах канваса
-        // if ((event.clientX == mouseDownCoords.x) && (event.clientY == mouseDownCoords.y) && (editor.selectedObject !== null)) {
-        //     if (event.clientX <= editor.canvas.width && event.clientY >= canvasCoords.top && event.clientY <= (editor.canvas.height + canvasCoords.top)) {
-        //         console.log('dispatching deselect area');
-        //         dispatch(deSelectArea, {});
-        //     }
-        // }
         document.removeEventListener('mousemove', onMouseMoveHandler);
         document.removeEventListener('mouseup', onMouseUpHandler);
     }

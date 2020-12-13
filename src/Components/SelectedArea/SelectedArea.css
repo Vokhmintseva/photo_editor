@@ -4,3 +4,10 @@
     display: block;
     z-index: 50;
 }
+
+.handle {
+    position: absolute;
+    background-color: rgb(167, 34, 116);
+    width: 5px;
+    height: 5px;
+}
