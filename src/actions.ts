@@ -16,10 +16,10 @@ export function cleanCanvas(width: number = defaultCanvasWidth, height: number =
 	return new ImageData(new Uint8ClampedArray(bufferArray.buffer), width, height);
 }
 
-export function createCanvas(editor: Editor, payload: Object): Editor {
+export function createCanvas(editor: Editor, payload: {width: number, height: number}): Editor {
 	return {
 		...editor,
-		canvas: cleanCanvas(),
+		canvas: cleanCanvas(payload.width, payload.height),
 		selectedObject: null,
 	}
 }

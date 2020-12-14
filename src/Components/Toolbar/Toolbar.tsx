@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useContext } from 'react'
 import {Editor} from '../../model'
 import './Toolbar.css';
 import Select from '../Select/Select';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import SnapshotButton from '../Buttons/SnapshotButton';
-import {applyFilter, cut, crop} from '../../actions';
+import {applyFilter, cut, crop, createCanvas} from '../../actions';
 import { dispatch } from '../../reducer';
+import {CanvasContext} from '../EditorComponent/EditorComponent';
 
 interface ToolbarProps {
     editor: Editor,
@@ -25,15 +26,19 @@ function Toolbar(props: ToolbarProps) {
         dispatch(applyFilter, {filterColor: filter})
     }
     
-    function onClearSelectionHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-        event.stopPropagation();
+    function onClearSelectionHandler() {
         dispatch(cut, {});
     }
 
-    function onSelectionCropHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-        event.stopPropagation();
+    function onSelectionCropHandler() {
         dispatch(crop, {});
     }
+
+
+    function onClearAllHandler() {
+        dispatch(createCanvas, {width: canvas!.width, height: canvas!.height});
+    }
+
 
     function onInsertTextHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
 
@@ -50,11 +55,13 @@ function Toolbar(props: ToolbarProps) {
             {text: "blue", value: "blue"},
         ]}
     />
+    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
 
     return (
         <div className='toolbar'>
             <OpenButton editor={props.editor} />
             <SaveButton editor={props.editor} />
+            <button onClick={onClearAllHandler}>ClearAll</button>
             {select}
             <button onClick={filterButtonHandler}>Применить фильтр</button>
             <SnapshotButton editor={props.editor} toggleShowCamera={props.toggleShowCamera}/>

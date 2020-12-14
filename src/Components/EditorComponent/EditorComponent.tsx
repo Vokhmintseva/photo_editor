@@ -50,7 +50,7 @@ function EditorComponent(props: EditorComponentProps) {
                         
                 {shouldShowCamera &&
                 <Video
-                    editor={props.editor}
+                    toggleShowCamera={toggleShowCamera}
                 />}
                 
             </div>

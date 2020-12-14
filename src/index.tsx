@@ -13,7 +13,7 @@ import {dispatch} from './reducer';
   //   selectedObject: null,
   // }
   // editor.canvas = createCanvas(editor).canvas;
-   dispatch(createCanvas, {});
+   dispatch(createCanvas, {width: 800, height: 600});
 
 
 // ReactDOM.render(
