@@ -2,7 +2,7 @@ import React, {useRef, useEffect, useState, useContext}  from 'react';
 import {Editor} from '../../model';
 import './SelectedArea.css';
 import {dispatch, getSelectionImgData} from '../../reducer';
-import {cut, addImage, isSelectedArea, deSelectArea} from '../../actions';
+import {cut, addImage, isSelectedArea, deSelectArea, dropSelection} from '../../actions';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 
 interface SelectedAreaProps {
@@ -11,68 +11,52 @@ interface SelectedAreaProps {
 
 const SelectedArea = (props: SelectedAreaProps) => {
     console.log('rendering SelectedArea');
-    
-    let isMousePressed = false;
-    let mouseDownCoords = {x: 0, y: 0};
-    let mouseUpCoords = {x: 0, y: 0};
-    let offset = {x: 0, y: 0};
+    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
+    const borderWidth = 1;
+    const canvasCoords = canvas!.getBoundingClientRect();
+    const [isMousePressed, toggleIsMousePressed] = useState(false);
+    const [offset, setOffset] = useState({x: 0, y: 0});
+    const [position, setPosition] = useState({x: props.editor.selectedObject?.position.x, y: canvasCoords.top + props.editor.selectedObject!.position.y!});
     let selCanvasRef = useRef(null);
-    // let leftTopCornerRef = useRef(null);
-    // let leftBottomCornerRef = useRef(null);
-    // let leftTopCornerRef = useRef(null);
-    // let leftTopCornerRef = useRef(null);
     
 
-    function onMouseDownHandler(event: any) {
-        const canvasCoords = canvas!.getBoundingClientRect();
-        if (event.clientY < canvasCoords.top) {
-            return;
-        }
-        if (event.defaultPrevented) {
-            return;
-        }
-        if (isSelectedArea(props.editor.selectedObject) ) {
-            console.log('SEL CANVAS in on Mouse Down Handler function ');
-            let context = canvas!.getContext('2d') as CanvasRenderingContext2D;
-            const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
-            const selCanvasCoords = selCanvas!.getBoundingClientRect();
+    // function onMouseDownHandler(event: any) {
+    //     const canvasCoords = canvas!.getBoundingClientRect();
+    //     if (event.clientY < canvasCoords.top) {
+    //         return;
+    //     }
+    //     if (event.defaultPrevented) {
+    //         return;
+    //     }
+    //     if (isSelectedArea(props.editor.selectedObject) ) {
+    //         console.log('SEL CANVAS in on Mouse Down Handler function ');
+    //         let context = canvas!.getContext('2d') as CanvasRenderingContext2D;
+    //         const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
+    //         const selCanvasCoords = selCanvas!.getBoundingClientRect();
             
-            let selAreaImgData: ImageData = props.editor.selectedObject.pixelArray;
-            context.putImageData(
-                selAreaImgData, 
-                selCanvasCoords.left + borderWidth,
-                selCanvasCoords.top - canvasCoords.top + borderWidth,
-                0,
-                0,
-                selCanvasCoords.width,
-                selCanvasCoords.height
-            );
-            const newData = context.getImageData(0, 0, canvas!.width, canvas!.height);
-            console.log('add image , deselect')
-            dispatch(addImage, {newImage: newData});
-        }
-    }
+    //         let selAreaImgData: ImageData = props.editor.selectedObject.pixelArray;
+    //         context.putImageData(
+    //             selAreaImgData, 
+    //             selCanvasCoords.left + borderWidth,
+    //             selCanvasCoords.top - canvasCoords.top + borderWidth,
+    //             0,
+    //             0,
+    //             selCanvasCoords.width,
+    //             selCanvasCoords.height
+    //         );
+    //         const newData = context.getImageData(0, 0, canvas!.width, canvas!.height);
+    //         console.log('add image , deselect')
+    //         dispatch(addImage, {newImage: newData});
+    //     }
+    // }
   
     function onMouseDownSelectionHandler(event: any) {
         console.log('SEL CANVAS in onMouseDownSelectionHandler function');
-        const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
-        const selCanvasCoords = selCanvas.getBoundingClientRect();
-        
-        let context = canvas!.getContext('2d') as CanvasRenderingContext2D;
-        offset = {x: event.clientX - selCanvasCoords.x, y: event.clientY - selCanvasCoords.y}
+        setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         document.addEventListener('mousemove', onMouseMoveSelectionHandler);
         document.addEventListener('mouseup', onMouseUpSelectionHandler);
-        //isMousePressed = true;
-        mouseDownCoords = {x: event.clientX, y: event.clientY};
-        context.clearRect(
-            props.editor.selectedObject!.position.x,
-            props.editor.selectedObject!.position.y,
-            props.editor.selectedObject!.w,
-            props.editor.selectedObject!.h
-        );
-        isMousePressed = true;
+        toggleIsMousePressed(true);
         event.preventDefault();
-        //dispatch(cut, {});
     }
     
     const adjustCoords = function (left: number, top: number): {left: number, top: number} {
@@ -96,41 +80,20 @@ const SelectedArea = (props: SelectedAreaProps) => {
     const onMouseMoveSelectionHandler = function (event: any) {
         //делаем перетаскивание
         if (isMousePressed) {
-            let adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
-            const selCanv: HTMLCanvasElement = selCanvasRef.current!;
-            selCanv.style.top = adjustedCoords.top + 'px';
-            selCanv.style.left = adjustedCoords.left + 'px';
+            const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
+            setPosition({x: adjustedCoords.left, y: adjustedCoords.top})
         }
         event.preventDefault();
     }
 
     const onMouseUpSelectionHandler = function (event: any) {
         console.log('SEL CANVAS in onMouseUpHandler function');
-        //делаем перемещение
-        //if (event.clientX !== mouseDownCoords.x && event.clientY !== mouseDownCoords.y) {
-            //wasSelectionReplaced = true;
-            mouseUpCoords = {x: event.clientX, y: event.clientY};
-            const selCanv: HTMLCanvasElement = selCanvasRef.current!;
-            const left = event.clientX - offset.x;
-            const top = event.clientY - offset.y;
-            const adjustedCoords = adjustCoords(left, top);
-            mouseUpCoords = {x: adjustedCoords.left, y: +adjustedCoords.top};
-            selCanv.style.top = adjustedCoords.top + 'px';
-            selCanv.style.left = adjustedCoords.left + 'px';
-
-            // selCanv.style.width = selCanvasCoords.width - borderWidth + 'px';
-            // selCanv.style.height = selCanvasCoords + 'px';
-            // const newData = selContext.getImageData(0, 0, selCanv.width, selCanv.height);
-            // let top = event.clientY - selCanvasCoords.y;
-            //dispatch(dropSelection, {where: {x: event.clientX, y: top}});
-        //}
-        isMousePressed = false;
-        // var context = canvas!.getContext('2d') as CanvasRenderingContext2D;            
-        // const newData = context.getImageData(0, 0, canvas!.width, canvas!.height);
-        // dispatch(addImage, {newImage: newData});
+        const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
+        setPosition({x: adjustedCoords.left, y: adjustedCoords.top + canvasCoords.top})
         document.removeEventListener('mousemove', onMouseMoveSelectionHandler);
         document.removeEventListener('mouseup', onMouseUpSelectionHandler);
         event.preventDefault();
+        dispatch(dropSelection, {where: {x: position.x!, y: position.y - canvasCoords.top!}})
     }
 
 
@@ -151,106 +114,45 @@ const SelectedArea = (props: SelectedAreaProps) => {
     //     })
     // }
 
-    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
-    const canvasCoords = canvas!.getBoundingClientRect();
-    const borderWidth = 1;
+    
+    
+    
 
     useEffect(() => { //функция запутится после рендеринга
         const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
-        var selContext = selCanvas.getContext('2d') as CanvasRenderingContext2D;
-        const canvasCoords = canvas!.getBoundingClientRect();
-        selCanvas.style.display = 'block';
-        selCanvas.style.top = props.editor.selectedObject!.position.y + canvasCoords.top - borderWidth * 2 + 'px';
-        selCanvas.style.left = props.editor.selectedObject!.position.x - borderWidth * 2 + 'px';
+        let selContext = selCanvas.getContext('2d') as CanvasRenderingContext2D;
+        selCanvas.style.top = position.y! + canvasCoords.top - borderWidth * 2 + 'px';
+        selCanvas.style.left = position.x! - borderWidth * 2 + 'px';
         selCanvas.setAttribute('width', props.editor.selectedObject!.w.toString());
         selCanvas.setAttribute('height', props.editor.selectedObject!.h.toString());
-        //let selAreaImgData: ImageData = getSelectionImgData();
-        if (isSelectedArea(props.editor.selectedObject)) {
-            let selAreaImgData: ImageData = props.editor.selectedObject.pixelArray;
-            selContext.putImageData(selAreaImgData, 0, 0, 0, 0, props.editor.selectedObject!.w, props.editor.selectedObject!.h);
+        if (isSelectedArea(props.editor.selectedObject) ) {
+            let selAreaImgData: ImageData = props.editor.selectedObject!.pixelArray;
+            selContext.putImageData(
+                selAreaImgData, 
+                0,
+                0,
+                0,
+                0,
+                props.editor.selectedObject.w,
+                props.editor.selectedObject.h
+            );
         }
         selCanvas.addEventListener('mousedown', onMouseDownSelectionHandler);
-        document.addEventListener('mousedown', onMouseDownHandler);
+        // document.addEventListener('mousedown', onMouseDownHandler);
        
-        
-
         //функция сработает когда произойдет следующая перерисовка
         return () => {
             selCanvas.removeEventListener('mousedown', onMouseDownSelectionHandler);
-            document.removeEventListener('mousedown', onMouseDownHandler);
+            // document.removeEventListener('mousedown', onMouseDownHandler);
         };
     });
-    
-    
-    // function onMouseDownHandler(event: any) {
-    //     if (props.editor.selectedObject) {
-    //         const selection: HTMLCanvasElement = selCanvasRef.current!;
-    //         console.log('скрытие выделенной области')
-    //         selection.style.display = 'none';
-    //     }
-    // }
-    
-    // useEffect(() => { //функция запутится после рендеринга
-    //     document.addEventListener('mousedown', onMouseDownHandler);
-        
-        
-    //     //функция сработает когда произойдет следующая перерисовка
-    //     return () => {
-    //         document.removeEventListener('mousedown', onMouseDownHandler);
-    //         // debugger;
-    //         // if (props.editor.selectedObject) {
-    //         //     const selection: HTMLCanvasElement = selCanvasRef.current!;
-    //         //     console.log('скрытие выделенной области')
-    //         //     selection.style.display = 'block';
-    //         // }
-
-            
-    //     };
-    // });
-    
-    // if (props.editor.selectedObject) {
-        return (
-            <div>
-
-            <canvas 
-                ref={selCanvasRef}    
-                className="selCanvas"
-                // style={{
-                //     top: `${props.editor.selectedObject!.position!.y - 2}px`,
-                //     left: `${props.editor.selectedObject!.position!.x - 2}px`,
-                //     width: `${props.editor.selectedObject!.w}px`,
-                //     height: `${props.editor.selectedObject!.h}px`,
-                    
-                // }}>
-            />
-            
-
-                {/* <div
-                    className="slider"
-                    ref={leftTopCorner}   
-                />
-                
-                
-                <div
-                    className="slider"
-                    ref={rightTopCorner}      
-                />  
-                
-                
-                <div
-                    className="slider"
-                    ref={rightBottomCorner}      
-                />   
-                
-                
-                <div
-                    className="slider"
-                    ref={leftBottomCorner}      
-                />     */}
-
-            </div>
-        ) 
-
+ 
+    return (
+        <canvas 
+            ref={selCanvasRef}    
+            className="selCanvas"
+        />
+    ) 
 }
 
 export default SelectedArea;

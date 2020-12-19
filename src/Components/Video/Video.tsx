@@ -17,7 +17,7 @@ function Video (props: VideoProps) {
         if (navigator.mediaDevices.getUserMedia) {
             //метод  MediaDevices.getUserMedia() запрашивая медиапоток
             //Успешное выполнение промиса передает объект потока( stream ) в качестве параметра функции метода then()
-              navigator.mediaDevices.getUserMedia({audio: false, video: true }).then(function (stream) {
+              navigator.mediaDevices.getUserMedia({audio: true, video: true }).then(function (stream) {
               video = document.querySelector("#video");
               if (video) {
                   //stream присваевается свойству srcObject элемента <video>, направляя поток в него

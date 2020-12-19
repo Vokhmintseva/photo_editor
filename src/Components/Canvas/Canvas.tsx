@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useContext}  from 'react';
+import React, { useRef, useEffect}  from 'react';
 import {Editor} from '../../model';
 import './Canvas.css';
 import {dispatch} from '../../reducer';
@@ -111,15 +111,6 @@ const Canvas = (props: CanvasProps) => {
     console.log('rendering Canvas');
     let canvasRef = useRef(null);
     let selRef = useRef(null);
-    // const [isVideoPlaying, setVideoPlaying] = useState(false);
-    
-    // function TogglePlayngState() {
-    //     setVideoPlaying(!isVideoPlaying);
-    // }
-
-    // function TogglePlayngState() {
-    //     setVideoPlaying(!isVideoPlaying);
-    //}
     
     useMakeSelection(canvasRef, selRef, props.editor);
           
@@ -132,7 +123,6 @@ const Canvas = (props: CanvasProps) => {
     }); 
 
     return (
-        //props.editor.selectedObject && 
         <div>
 
             <canvas 
@@ -147,7 +137,6 @@ const Canvas = (props: CanvasProps) => {
                 className="selection"
             />
 
-        {/* <Video editor={editProps.editor} reference={canvasRef}/> */}
         </div>
     )
 }
