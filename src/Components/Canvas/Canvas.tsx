@@ -1,10 +1,10 @@
-import React, { useRef, useEffect}  from 'react';
+import React, { useState, useRef, useEffect}  from 'react';
 import {Editor} from '../../model';
 import './Canvas.css';
 import {dispatch} from '../../reducer';
-import {selectArea, deSelectArea, cut} from '../../actions';
-
-
+import {selectArea, deSelectArea, cut, addImage, isSelectedArea, joinSelectionWithCanvas} from '../../actions';
+import transform from '../SelectedArea/CoordinateTransformer';
+import MakingSelection from '../SelectedArea/MakingSelection';
 
 interface CanvasProps {
     editor: Editor,
@@ -12,119 +12,115 @@ interface CanvasProps {
 }
 
 function useMakeSelection(canvasRef: any, selRef: any, editor: Editor) {
-    let isMousePressed = false;
-    let mouseDownCoords = {x: 0, y: 0};
+    const [mouseState, setMouseState] = useState({
+        down: {
+            x: 0,
+            y: 0,
+        },
+        isMousePressed: false,
+        current: {
+            x: 0,
+            y: 0,
+        }, 
+    });    
 
     function onMouseDownHandler(event: any) {
         const canvasCoord = canvasRef.current!.getBoundingClientRect();
-        if (event.clientY < canvasCoord.top) {
-            return;
-        }
-        if (event.defaultPrevented) {
-            return;
-        }
-        if (editor.selectedObject) {
-            dispatch(deSelectArea, {});
-        }
-        console.log('in onMouseDownHandler function');
-        document.addEventListener('mousemove', onMouseMoveHandler);
-        document.addEventListener('mouseup', onMouseUpHandler);
-        isMousePressed = true;
-        mouseDownCoords = {x: event.clientX, y: event.clientY};
+        if (event.clientY < canvasCoord.top || event.defaultPrevented) return;
+
+        setMouseState({
+            ...mouseState,
+            down: {
+                x: event.clientX,
+                y: event.clientY,
+            },
+            isMousePressed: true,
+        })
     }
     
     const onMouseMoveHandler = function (event: any) {
-        
         //рисуем выбор выделенной области
-        if (event.defaultPrevented) {
-            return;
+        if (mouseState.isMousePressed) {
+            setMouseState({
+                ...mouseState,
+                current: {
+                    x: event.clientX,
+                    y: event.clientY,
+                },
+            });
         }
-        if (isMousePressed) {
-            const selection: HTMLDivElement = selRef.current!;
-            const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
-            if (selectionCoords.width && selectionCoords.height) {
-                selection.style.display = 'block';
-                selection.style.left = selectionCoords.startX.toString();
-                selection.style.top = selectionCoords.startY.toString();
-                selection.style.width = selectionCoords.width.toString();
-                selection.style.height = selectionCoords.height.toString();
-            }
-        }
-    }
-
-    function getSelectionParams (start: {x: number, y: number}, end: {x: number, y: number}) {
-        const canv: HTMLCanvasElement = canvasRef.current!;
-        const canvasCoord = canv.getBoundingClientRect();
-        let startX = Math.min(start.x, end.x, canvasCoord.width);
-        let startY = Math.max(canvasCoord.y, Math.min(canvasCoord.y + canvasCoord.height, end.y, start.y));
-        let endX = Math.min(Math.max(end.x, start.x), canvasCoord.width);
-        let endY = Math.min(startY + Math.abs(end.y - start.y), canvasCoord.y + canvasCoord.height);
-        return ({
-            startX: startX,
-            startY: startY,
-            endX: endX,
-            endY: endY,
-            width: endX - startX,
-            height: endY - startY,
-        })
     }
 
     const onMouseUpHandler = function (event: any) {
         const canvasCoords = canvasRef.current!.getBoundingClientRect();
-        if (event.clientY < canvasCoords.top) {
-            return;
-        }
-        if (event.defaultPrevented) {
-            return;
-        }
-        console.log('in onMouseUpHandler function');
-        isMousePressed = false;
+        if (event.clientY < canvasCoords.top || event.defaultPrevented) return;
+        
         const selection: HTMLDivElement = selRef.current!;
         selection.style.display = 'none';
 
         //делаем выделение
-        if ((event.clientX !== mouseDownCoords.x) && (event.clientY !== mouseDownCoords.y)) {
-            console.log('creating selected area');
-            const selectionCoords = getSelectionParams({x: mouseDownCoords.x, y: mouseDownCoords.y}, {x: event.clientX, y: event.clientY});
+        if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
+            //console.log('creating selected area');
+            const selectionCoords = transform(
+                { x: mouseState.down.x, y: mouseState.down.y },
+                { x: event.clientX, y: event.clientY },
+                canvasCoords
+            );
             const startX = selectionCoords.startX + 2 as number;
             const startY = selectionCoords.startY + 2 as number;
             const endX = selectionCoords.endX + 2 as number;
             const endY = selectionCoords.endY + 2 as number;
             dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
-            
         }
-        document.removeEventListener('mousemove', onMouseMoveHandler);
-        document.removeEventListener('mouseup', onMouseUpHandler);
+
+        setMouseState({
+            ...mouseState,
+            isMousePressed: false,
+        });
     }
 
     useEffect(() => { //функция запутится после рендеринга
         
         document.addEventListener('mousedown', onMouseDownHandler);
+        document.addEventListener('mousemove', onMouseMoveHandler);
+        document.addEventListener('mouseup', onMouseUpHandler);
+
+        // установим выделение
+        const canv: HTMLCanvasElement = canvasRef.current!;
+        const rect = canv.getBoundingClientRect();
+        const rectReact = transform({x: mouseState.down.x, y: mouseState.down.y}, { x: mouseState.current.x, y: mouseState.current.y}, rect);
+
+        const svg: HTMLElement = selRef.current!;
+        svg.style.top = rectReact.startY.toString() + 'px';
+        svg.style.left = rectReact.startX.toString() + 'px';
+        svg.setAttribute('width', rectReact.width.toString());
+        svg.setAttribute('height', rectReact.height.toString());
+
         //функция сработает когда произойдет следующая перерисовка
         return () => {
             document.removeEventListener('mousedown', onMouseDownHandler);
+            document.removeEventListener('mousemove', onMouseMoveHandler);
+            document.removeEventListener('mouseup', onMouseMoveHandler);
         };
     });
 }
     
 const Canvas = (props: CanvasProps) => {
     console.log('rendering Canvas');
-    let canvasRef = useRef(null);
-    let selRef = useRef(null);
     
-    useMakeSelection(canvasRef, selRef, props.editor);
+    let canvasRef = useRef(null);
+
+    //useMakeSelection(canvasRef, selRef, props.editor);
           
     useEffect(() => { //функция запутится после рендеринга
-        const canv: HTMLCanvasElement = canvasRef.current!;
-        props.setCanv(canvasRef);
-        let context = canv.getContext('2d') as CanvasRenderingContext2D;
+        const canvas: HTMLCanvasElement = canvasRef.current!;
+        let context = canvas.getContext('2d') as CanvasRenderingContext2D;
         context.putImageData(props.editor.canvas, 0, 0, 0, 0, props.editor.canvas.width, props.editor.canvas.height);
-        
+        props.setCanv(canvasRef);
     }); 
 
     return (
         <div>
-
             <canvas 
                 ref={canvasRef}    
                 width={props.editor.canvas.width}
@@ -132,9 +128,8 @@ const Canvas = (props: CanvasProps) => {
                 className="canvas"
             />
 
-            <svg 
-                ref={selRef} 
-                className="selection"
+            <MakingSelection 
+                editor={props.editor}                
             />
 
         </div>

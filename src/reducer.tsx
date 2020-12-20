@@ -12,7 +12,7 @@ export let editor: Editor = {
 }
 
 export function dispatch<T>(func: { (edtr: Editor, obj: T): Editor }, obj: T): void {
-    editor =  func(editor, obj);
+    editor = func(editor, obj);
     ReactDOM.render(
     <React.StrictMode>
         <App editor={editor}/>

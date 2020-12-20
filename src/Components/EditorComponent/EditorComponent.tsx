@@ -7,6 +7,7 @@ import Video from '../Video/Video';
 import SelectedArea from '../SelectedArea/SelectedArea';
 import Canvas from '../Canvas/Canvas';
 import './EditorComponent.css';
+import SelectedAreaTest from '../SelectedArea/MakingSelection';
 
 interface EditorComponentProps {
     editor: Editor
@@ -15,7 +16,7 @@ interface EditorComponentProps {
 export const CanvasContext = React.createContext(null);
 
 function EditorComponent(props: EditorComponentProps) {
-    console.log('rendering EditorComponent');
+    //console.log('rendering EditorComponent');
     const [shouldShowCamera, setShouldShowCamera] = useState(false);
     
     const [canvas, setCanvas] = useState(null);
@@ -37,19 +38,17 @@ function EditorComponent(props: EditorComponentProps) {
                     toggleShowCamera={toggleShowCamera}
                 />
 
-                {props.editor.selectedObject !==null &&
+                {props.editor.selectedObject &&
                 <SelectedArea
                     editor={props.editor}
                 />}
                 
-                {!shouldShowCamera &&
-                <Canvas 
+                {!shouldShowCamera 
+                ? <Canvas 
                     setCanv={getCanvas}
                     editor={props.editor}
-                />}
-                        
-                {shouldShowCamera &&
-                <Video
+                />
+                : <Video
                     toggleShowCamera={toggleShowCamera}
                 />}
                 

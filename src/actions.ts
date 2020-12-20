@@ -35,6 +35,26 @@ export function resizeCanvas(editor: Editor, payload: {newWidth: number, newHeig
 	}
 }
 
+function putImgDataOnCanvas (editor: Editor): ImageData {
+	let arrayOfIndexesToChange = getIndexes(editor);
+	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
+	if (isSelectedArea(editor.selectedObject)) {
+		for (let i: number = 0; i < arrayOfIndexesToChange.length; i++) {
+			newPxArray[arrayOfIndexesToChange[i]] = editor.selectedObject.pixelArray.data[i]; 
+		}
+	}
+	return new ImageData(newPxArray, editor.canvas.width, editor.canvas.height);
+}
+
+export function joinSelectionWithCanvas(editor: Editor): Editor {
+	return {
+		...editor,
+		canvas: putImgDataOnCanvas(editor),
+		selectedObject: null,
+	}
+}
+
+
 // export function resizeCanvas(editor: Editor, newWidth: number, newHeight: number): Editor {
 // 	return {
 // 		...editor,
@@ -87,6 +107,7 @@ export function removeCanvas(editor: Editor): Editor {
 export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint: Point}): Editor {
 	return {
 		...editor,
+		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)),
 		selectedObject: {
 			type: 'selectedArea',
 			pixelArray: getImageDataByCoords(editor, payload.startPoint, payload.endPoint), 
@@ -166,8 +187,9 @@ export function dropSelection(editor: Editor, payload: {where: Point}): Editor {
 			}
 		}
 	} else {
-		return editor
+		return editor;
 	}
+
 }
 
 //получить индекс элемента в массиве Unit8ClampedArray, зная его координаты на канвасе
@@ -220,7 +242,6 @@ export function getImageDataOfSelectedArea(editor: Editor): ImageData  {
 			}
 		}
 	}
-	console.log('new img data has been received')
 	return new ImageData(new Uint8ClampedArray(bufferArray.buffer), selectionWidth, selectionHeight);
 	//} 
 	
@@ -231,7 +252,6 @@ export function getImageDataOfSelectedArea(editor: Editor): ImageData  {
 
 //получить массив индексов элементов в массиве Unit8ClampedArray канваса для пикселей, попавших в выделенную область
 export function getIndexes(editor: Editor): Array<number> {
-	console.log('executing getIndexes function');
 	let arr: Array<number> = [];
 	if (editor.selectedObject !== null) {
 		let startX: number = editor.selectedObject!.position.x;
