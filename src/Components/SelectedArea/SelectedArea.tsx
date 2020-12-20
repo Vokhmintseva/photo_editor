@@ -4,6 +4,7 @@ import './SelectedArea.css';
 import {dispatch} from '../../reducer';
 import {isSelectedArea, dropSelection, joinSelectionWithCanvas} from '../../actions';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
+import { resolve, intention, Intent } from '../../intentResolver';
 
 interface SelectedAreaProps {
     editor: Editor,
@@ -18,6 +19,7 @@ function calculateInitPos (props: SelectedAreaProps, canvasCoords: DOMRect) {
 
 const SelectedArea = (props: SelectedAreaProps) => {
     console.log('rendering SelectedArea');
+    
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     const borderWidth = 1;
     const canvasCoords = canvas!.getBoundingClientRect();
@@ -32,25 +34,23 @@ const SelectedArea = (props: SelectedAreaProps) => {
     let selCanvasRef = useRef(null);
     
     function onMouseDownHandler(event: any) {
+        resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
+        if (intention !== Intent.Dropping) return;
         console.log('SEL CANVAS in onMouseDownHandler function');
-        if (event.defaultPrevented) return;
-        if (props.editor.selectedObject) {
-            if (isSelectedArea(props.editor.selectedObject)) {
-                //dispatch(joinSelectionWithCanvas, {});
-            }
+        if (isSelectedArea(props.editor.selectedObject)) {
+            dispatch(joinSelectionWithCanvas, {});
         }
-        event.preventDefault();
     }
     
     function onMouseDownSelectionHandler(event: any) {
+        resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
+        if (intention !== Intent.Dragging) return;
         console.log('SEL CANVAS in onMouseDownSelectionHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
-        event.preventDefault();
     }
     
     const adjustCoords = function (left: number, top: number): {left: number, top: number} {
-
         const selCanv: HTMLCanvasElement = selCanvasRef.current!;
         
         if (left < canvasCoords.left) {
@@ -74,7 +74,6 @@ const SelectedArea = (props: SelectedAreaProps) => {
             setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
             event.preventDefault();
         }
-        
     }
 
     const onMouseUpSelectionHandler = function (event: any) {
