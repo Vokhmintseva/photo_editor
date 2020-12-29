@@ -1,23 +1,24 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import {Editor} from '../../model'
 import './Toolbar.css';
-import Select from '../Select/Select';
+import SelectFilter from '../Select/SelectFilter';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import SnapshotButton from '../Buttons/SnapshotButton';
-import {applyFilter, cut, crop, createCanvas} from '../../actions';
+import {applyFilter, cut, crop, createCanvas, deSelectArea} from '../../actions';
 import { dispatch } from '../../reducer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
+import { setIntention, intention, Intent } from '../../intentResolver';
 
 interface ToolbarProps {
     editor: Editor,
     toggleShowCamera: () => void,
+    toggleShowTextArea: () => void,
 }
 
 function Toolbar(props: ToolbarProps) {
-    console.log('rendering toolbar')
     const [filter, setFilter] = useState("grey");
-    
+       
     function selectFilterHandler(event: any): void {
         setFilter(event.target.value)
     }
@@ -28,6 +29,7 @@ function Toolbar(props: ToolbarProps) {
     
     function onClearSelectionHandler() {
         dispatch(cut, {});
+        dispatch(deSelectArea, {});
     }
 
     function onSelectionCropHandler() {
@@ -39,12 +41,7 @@ function Toolbar(props: ToolbarProps) {
         dispatch(createCanvas, {width: canvas!.width, height: canvas!.height});
     }
 
-
-    function onInsertTextHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-
-    }
-
-    const select = <Select
+    const select = <SelectFilter
         label="Выберите фильтр"
         value={filter}
         onChange={selectFilterHandler}
@@ -57,6 +54,10 @@ function Toolbar(props: ToolbarProps) {
     />
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
 
+    useEffect(() => {
+
+    })
+
     return (
         <div className='toolbar'>
             <OpenButton editor={props.editor} />
@@ -67,7 +68,7 @@ function Toolbar(props: ToolbarProps) {
             <SnapshotButton editor={props.editor} toggleShowCamera={props.toggleShowCamera}/>
             <button onClick={onClearSelectionHandler}>Cut</button>
             <button onClick={onSelectionCropHandler}>Crop</button>
-            <button onClick={onInsertTextHandler}>A</button>
+            <button onClick={props.toggleShowTextArea}>A</button>
 
         </div>
     )

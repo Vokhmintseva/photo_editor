@@ -1,13 +1,15 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {Editor} from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
-// import { dispatch, getSelectionImgData} from '../../reducer';
-// import {selectArea, cut, getSelectedAreaData, addImage, deSelectArea} from '../../actions';
+import { isSelectedArea, isTextObject, deSelectArea } from '../../actions';
 import Video from '../Video/Video';
-import SelectedArea from '../SelectedArea/SelectedArea';
+import SelectedArea from '../SelectedObject/SelectedArea';
+import TextObject from '../SelectedObject/TextObject';
 import Canvas from '../Canvas/Canvas';
 import './EditorComponent.css';
-import SelectedAreaTest from '../SelectedArea/MakingSelection';
+import { Intent, setIntention } from '../../intentResolver';
+import TextBar from '../TextBar/TextBar';
+import { dispatch } from '../../reducer';
 
 interface EditorComponentProps {
     editor: Editor
@@ -16,17 +18,26 @@ interface EditorComponentProps {
 export const CanvasContext = React.createContext(null);
 
 function EditorComponent(props: EditorComponentProps) {
-    //console.log('rendering EditorComponent');
     const [shouldShowCamera, setShouldShowCamera] = useState(false);
-    
+    const [showTextArea, setShowTextArea] = useState(false);
     const [canvas, setCanvas] = useState(null);
     const getCanvas = (ref: any) => setCanvas(ref.current!);
-  
 
     const toggleShowCamera = () => {
         setShouldShowCamera(!shouldShowCamera);
     }
+
+    const toggleShowTextArea = () => {
+        if (showTextArea) {
+            dispatch(deSelectArea, {});
+        }
+        setShowTextArea(!showTextArea);
+    }
     
+    useEffect(() => {
+        showTextArea ? setIntention(Intent.SelectingTextObj) : setIntention(Intent.Nothing);
+    })
+
     // let canvasStyles: Array<String> = ['canvas'];
     // if (isVideoPlaying) canvasStyles.push('canvasNotVisible');
          
@@ -36,10 +47,21 @@ function EditorComponent(props: EditorComponentProps) {
                 <Toolbar 
                     editor={props.editor}
                     toggleShowCamera={toggleShowCamera}
+                    toggleShowTextArea={toggleShowTextArea}
                 />
 
-                {props.editor.selectedObject &&
+                {/* {(props.editor.selectedObject && isTextObject(props.editor.selectedObject) ) &&
+                <TextBar
+                    editor={props.editor}
+                />} */}
+
+                {(props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) &&
                 <SelectedArea
+                    editor={props.editor}
+                />}
+
+                {(props.editor.selectedObject && isTextObject(props.editor.selectedObject)) &&
+                <TextObject
                     editor={props.editor}
                 />}
                 
@@ -47,6 +69,7 @@ function EditorComponent(props: EditorComponentProps) {
                 ? <Canvas 
                     setCanv={getCanvas}
                     editor={props.editor}
+                    showTextArea={showTextArea}
                 />
                 : <Video
                     toggleShowCamera={toggleShowCamera}

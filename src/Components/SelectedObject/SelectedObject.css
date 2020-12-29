@@ -1,0 +1,46 @@
+.selCanvas {
+    position: absolute;
+    border: 1px dashed black;
+    display: block;
+    z-index: 50;
+}
+
+.handle {
+    position: absolute;
+    background-color: rgb(167, 34, 116);
+    width: 5px;
+    height: 5px;
+}
+
+.textSelection {
+    position: absolute;
+    border: 1px dashed black;
+    display: block;
+    z-index: 50; 
+}
+
+.textField {
+    position: absolute;
+    z-index: 50;
+}
+
+.boldFontButtton {
+    font-weight: bold;
+    font-size: 20px;
+    width: 30px;
+    margin: 0 2px 0 2px;
+} 
+
+.italicsFontButtton {
+    font-style: italic;
+    font-size: 20px;
+    width: 30px;
+    margin: 0 2px 0 2px;
+}    
+
+.underlinedFontButtton {
+    text-decoration: underline;
+    font-size: 20px;
+    width: 30px;
+    margin: 0 2px 0 2px;
+}    

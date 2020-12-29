@@ -67,7 +67,6 @@ export function joinSelectionWithCanvas(editor: Editor): Editor {
 // }
 
 export function addImage(editor: Editor, payload: {newImage: ImageData}): Editor {
-	//console.log('new image', payload.newImage);
 	return {
 		...editor,
 		canvas: payload.newImage,
@@ -105,9 +104,9 @@ export function removeCanvas(editor: Editor): Editor {
 }
 
 export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint: Point}): Editor {
+	
 	return {
 		...editor,
-		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)),
 		selectedObject: {
 			type: 'selectedArea',
 			pixelArray: getImageDataByCoords(editor, payload.startPoint, payload.endPoint), 
@@ -117,11 +116,37 @@ export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint
 			},
 			w: Math.abs(payload.startPoint.x - payload.endPoint.x), 
 			h: Math.abs(payload.startPoint.y - payload.endPoint.y),
-		} 
+			
+		},
+		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)), 
 	}
 }
+
+export function selectTextArea(editor: Editor, payload: {startPoint: Point, endPoint: Point}): Editor {
+	
+	return {
+		...editor,
+		selectedObject: {
+			type: 'text',
+			position: {
+				x: Math.min(payload.startPoint.x, payload.endPoint.x),
+				y: Math.min(payload.startPoint.y, payload.endPoint.y)
+			},
+			w: Math.abs(payload.startPoint.x - payload.endPoint.x), 
+			h: Math.abs(payload.startPoint.y - payload.endPoint.y),
+			text: '',
+			fontFamily: 'Times New Roman',
+			fontSize: 20,
+			color: '#000000',
+			fontWeight: 'normal',
+			fontStyle: 'normal',
+			textDecoration: 'none'
+		}
+	}
+}
+
 //снять выделение
-export function deSelectArea(editor: Editor): Editor {
+export function deSelectArea(editor: Editor, payload: {}): Editor {
 	return {
 		...editor,
 		selectedObject: null
@@ -189,7 +214,21 @@ export function dropSelection(editor: Editor, payload: {where: Point}): Editor {
 	} else {
 		return editor;
 	}
+}
 
+//переместить выделенную область
+export function dropTextObj(editor: Editor, payload: {where: Point}): Editor {
+	if (isTextObject(editor.selectedObject)) {
+		return {
+			...editor,
+			selectedObject: {
+				...editor.selectedObject,
+				position: payload.where,
+			}
+		}
+	} else {
+		return editor;
+	}
 }
 
 //получить индекс элемента в массиве Unit8ClampedArray, зная его координаты на канвасе
@@ -253,6 +292,8 @@ export function getImageDataOfSelectedArea(editor: Editor): ImageData  {
 //получить массив индексов элементов в массиве Unit8ClampedArray канваса для пикселей, попавших в выделенную область
 export function getIndexes(editor: Editor): Array<number> {
 	let arr: Array<number> = [];
+
+	
 	if (editor.selectedObject !== null) {
 		let startX: number = editor.selectedObject!.position.x;
 		let startY: number = editor.selectedObject!.position.y;
@@ -272,7 +313,6 @@ export function getIndexes(editor: Editor): Array<number> {
 
 //сделать прозрачной выделенную область канваса
 export function makeSelectionBeTransparent(editor: Editor, arr: Array<number>): ImageData {
-	console.log('make selection be transparent calling');
 	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
 	for (let i: number = 0; i < arr.length; i += 4) {
 		newPxArray[arr[i] + 3] = 0; 
@@ -301,7 +341,7 @@ export function cut(editor: Editor, payload: Object): Editor {
 	return {
 		...editor,
 		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)),
-		selectedObject: null,
+		//selectedObject: null,
 	}
 }
 
@@ -327,7 +367,6 @@ export function turnImgDataToGrey(editor: Editor): ImageData {
 
 function filter(editor: Editor, filterColor: string): ImageData {
 	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
-	console.log("filterColor", filterColor)
 	if (filterColor === "grey") {
 		for (let i = 0; i < newPxArray.length; i += 4) {
 			const average = (newPxArray[i] + newPxArray[i + 1] + newPxArray[i + 2]) / 3

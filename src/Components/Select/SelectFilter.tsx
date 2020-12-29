@@ -1,5 +1,5 @@
 import React from 'react';
-import './Select.css';
+import './SelectFilter.css';
 
 interface SelectProps {
     label: string,
@@ -8,7 +8,7 @@ interface SelectProps {
     options: Array<Object>;
 }
 
-const Select = (props: SelectProps) => {
+const SelectFilter = (props: SelectProps) => {
     const htmlFor = `${props.label}-${Math.random()}`
 
     return (
@@ -34,4 +34,4 @@ const Select = (props: SelectProps) => {
     )
 }
 
-export default Select;
+export default SelectFilter;

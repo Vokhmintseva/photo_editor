@@ -1,10 +1,10 @@
 import React, {useRef, useEffect, useState, useContext}  from 'react';
 import {Editor} from '../../model';
-import './SelectedArea.css';
+import './SelectedObject.css';
 import {dispatch} from '../../reducer';
 import {isSelectedArea, dropSelection, joinSelectionWithCanvas} from '../../actions';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
-import { resolve, intention, Intent } from '../../intentResolver';
+import { resolve, intention, Intent, setIntention } from '../../intentResolver';
 
 interface SelectedAreaProps {
     editor: Editor,
@@ -26,28 +26,27 @@ const SelectedArea = (props: SelectedAreaProps) => {
 
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [offset, setOffset] = useState({x: 0, y: 0});
-    // const [position, setPosition] = useState({
-    //     x: props.editor.selectedObject!.position.x,
-    //     y: canvasCoords.top + props.editor.selectedObject!.position.y
-    // });
     const [position, setPosition] = useState(() => {return calculateInitPos(props, canvasCoords)});
     let selCanvasRef = useRef(null);
     
     function onMouseDownHandler(event: any) {
+        if (event.clientY < canvasCoords.top) return;
         resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-        if (intention !== Intent.Dropping) return;
-        console.log('SEL CANVAS in onMouseDownHandler function');
+        if (intention !== Intent.DroppingSA) return;
+        console.log('SA in onMouseDownHandler function');
         if (isSelectedArea(props.editor.selectedObject)) {
             dispatch(joinSelectionWithCanvas, {});
+            setIntention(Intent.Nothing);
         }
     }
     
-    function onMouseDownSelectionHandler(event: any) {
+    function onMouseDownSAHandler(event: any) {
         resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-        if (intention !== Intent.Dragging) return;
-        console.log('SEL CANVAS in onMouseDownSelectionHandler function');
+        if (intention !== Intent.DraggingSA) return;
+        console.log('SA in onMouseDownSAHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
+        
     }
     
     const adjustCoords = function (left: number, top: number): {left: number, top: number} {
@@ -68,7 +67,7 @@ const SelectedArea = (props: SelectedAreaProps) => {
         return {left, top}
     }
     
-    const onMouseMoveSelectionHandler = function (event: any) {
+    const onMouseMoveSAHandler = function (event: any) {
         if (isMousePressed) {
             const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
             setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
@@ -76,16 +75,14 @@ const SelectedArea = (props: SelectedAreaProps) => {
         }
     }
 
-    const onMouseUpSelectionHandler = function (event: any) {
+    const onMouseUpSAHandler = function (event: any) {
         if (!isMousePressed) return;
-        console.log('SEL CANVAS in onMouseUpHandler function');
+        console.log('SA in onMouseUpSAHandler function');
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
         dispatch(dropSelection, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
-        document.removeEventListener('mousemove', onMouseMoveSelectionHandler);
-        document.removeEventListener('mouseup', onMouseUpSelectionHandler);
-        event.preventDefault();
+
     }
 
 
@@ -106,19 +103,23 @@ const SelectedArea = (props: SelectedAreaProps) => {
     //     })
     // }
 
-    useEffect(() => { 
-        document.addEventListener('mousemove', onMouseMoveSelectionHandler);
-        document.addEventListener('mouseup', onMouseUpSelectionHandler);
-    }, [isMousePressed, offset]);
+    // useEffect(() => { 
+    //     document.addEventListener('mousemove', onMouseMoveSAHandler);
+    //     document.addEventListener('mouseup', onMouseUpSAHandler);
+    // }, [isMousePressed, offset]);
 
     useEffect(() => { 
         const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
-        selCanvas.addEventListener('mousedown', onMouseDownSelectionHandler);
+        selCanvas.addEventListener('mousedown', onMouseDownSAHandler);
         document.addEventListener('mousedown', onMouseDownHandler);
+        document.addEventListener('mousemove', onMouseMoveSAHandler);
+        document.addEventListener('mouseup', onMouseUpSAHandler);
         //функция сработает когда произойдет следующая перерисовка
         return () => {
-            selCanvas.removeEventListener('mousedown', onMouseDownSelectionHandler);
+            selCanvas.removeEventListener('mousedown', onMouseDownSAHandler);
             document.removeEventListener('mousedown', onMouseDownHandler);
+            document.removeEventListener('mousemove', onMouseMoveSAHandler);
+            document.removeEventListener('mouseup', onMouseUpSAHandler);
         };
     });  
     

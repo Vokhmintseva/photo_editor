@@ -22,6 +22,9 @@ export type TextObject = EditorObject & {
 	fontFamily: string,
 	fontSize: number,
 	color: string,
+	fontWeight: string,
+	fontStyle: string,
+	textDecoration: string,
 }
 
 export type ShapeObject = EditorObject & {

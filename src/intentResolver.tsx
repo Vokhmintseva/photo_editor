@@ -1,15 +1,23 @@
 import { Editor } from "./model";
+import { isSelectedArea, isTextObject } from './actions';
 
 export enum Intent {
     Nothing,
-    Selecting,
-    Dragging,
-    Dropping
+    SelectingSA,
+    DraggingSA,
+    DroppingSA,
+    DraggingTextObj,
+    DroppingTextObj,
+    SelectingTextObj
 }
 
 export let intention: Intent = Intent.Nothing;
 
-function isInSelectedAreaClick(editor: Editor, mouseCoords: {x: number, y: number}, bounds: DOMRect): Boolean {
+export function setIntention(int: Intent) {
+    intention = int;
+}
+
+function isInSelectedObjClick(editor: Editor, mouseCoords: {x: number, y: number}, bounds: DOMRect): Boolean {
     const selStartX = editor.selectedObject?.position.x!;
     const selStartY = bounds.top + editor.selectedObject?.position.y!;  
     const selEndX = selStartX + editor.selectedObject?.w!;
@@ -23,14 +31,27 @@ function isInSelectedAreaClick(editor: Editor, mouseCoords: {x: number, y: numbe
 }
 
 export function resolve(editor: Editor, mouseCoords: {x: number, y: number}, bounds: DOMRect): void {
-    if (editor.selectedObject) {
-        if (isInSelectedAreaClick(editor, mouseCoords, bounds)) {
-            intention = Intent.Dragging;
+    
+    if (editor.selectedObject && isTextObject(editor.selectedObject)) {
+        if (isInSelectedObjClick(editor, mouseCoords, bounds)) {
+            intention = Intent.DraggingTextObj;
         } else {
-            intention = Intent.Dropping;
+            intention = Intent.DroppingTextObj;
+        }
+        return;
+    }
+    
+    if (intention == Intent.SelectingTextObj) return;
+    console.log('code is here');
+    if (editor.selectedObject && isSelectedArea(editor.selectedObject)) {
+        if (isInSelectedObjClick(editor, mouseCoords, bounds)) {
+            intention = Intent.DraggingSA;
+        } else {
+            intention = Intent.DroppingSA;
         }
     } else {
-        intention = Intent.Selecting;
+        intention = Intent.SelectingSA;
     }
+
+
 }
-//export function isSelectedAreaMoving 
