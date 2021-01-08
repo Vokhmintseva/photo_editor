@@ -43,4 +43,54 @@
     font-size: 20px;
     width: 30px;
     margin: 0 2px 0 2px;
-}    
+}  
+
+.applyBtn {
+    background: url('../../images/apply.png') no-repeat; 
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
+
+.abolishBtn {
+    background: url('../../images/abolish.png') no-repeat; 
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
+
+.textBar, 
+.shapeBar {
+    display: flex;
+    flex-direction: row;
+}
+
+.circleBtn {
+    background: url('../../images/circle.png') no-repeat; 
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
+
+.rectangleBtn {
+    background: url('../../images/square.png') no-repeat; 
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
+
+.triangleBtn {
+    background: url('../../images/triangle.png') no-repeat; 
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
+
+.shapeBorder {
+   position: absolute;
+   border: 1px dashed black;
+}
+
+.shapeBar {
+   height: 30px;
+}

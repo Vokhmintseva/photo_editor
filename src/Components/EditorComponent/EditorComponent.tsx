@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import {Editor} from '../../model';
+import { Figure, Editor } from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
-import { isSelectedArea, isTextObject, deSelectArea } from '../../actions';
+import { isSelectedArea, isTextObject, isShapeObject, deSelectArea } from '../../actions';
 import Video from '../Video/Video';
 import SelectedArea from '../SelectedObject/SelectedArea';
 import TextObject from '../SelectedObject/TextObject';
+import ShapeObject from '../SelectedObject/ShapeObject';
 import Canvas from '../Canvas/Canvas';
 import './EditorComponent.css';
 import { Intent, setIntention } from '../../intentResolver';
@@ -20,6 +21,8 @@ export const CanvasContext = React.createContext(null);
 function EditorComponent(props: EditorComponentProps) {
     const [shouldShowCamera, setShouldShowCamera] = useState(false);
     const [showTextArea, setShowTextArea] = useState(false);
+    const [showShapeObj, setShowShapeObj] = useState(false);
+    
     const [canvas, setCanvas] = useState(null);
     const getCanvas = (ref: any) => setCanvas(ref.current!);
 
@@ -32,6 +35,13 @@ function EditorComponent(props: EditorComponentProps) {
             dispatch(deSelectArea, {});
         }
         setShowTextArea(!showTextArea);
+    }
+
+    const onShapeObjClickHandler = (event: any) => {
+        if (showShapeObj) {
+            dispatch(deSelectArea, {});
+        }
+        setShowShapeObj(!showShapeObj);
     }
     
     useEffect(() => {
@@ -48,6 +58,8 @@ function EditorComponent(props: EditorComponentProps) {
                     editor={props.editor}
                     toggleShowCamera={toggleShowCamera}
                     toggleShowTextArea={toggleShowTextArea}
+                    showTextArea={showTextArea}
+                    onShapeObjClickHandler={onShapeObjClickHandler}
                 />
 
                 {/* {(props.editor.selectedObject && isTextObject(props.editor.selectedObject) ) &&
@@ -62,6 +74,11 @@ function EditorComponent(props: EditorComponentProps) {
 
                 {(props.editor.selectedObject && isTextObject(props.editor.selectedObject)) &&
                 <TextObject
+                    editor={props.editor}
+                />}
+
+                {showShapeObj &&
+                <ShapeObject
                     editor={props.editor}
                 />}
                 

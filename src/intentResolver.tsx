@@ -6,9 +6,11 @@ export enum Intent {
     SelectingSA,
     DraggingSA,
     DroppingSA,
+    SelectingTextObj,
     DraggingTextObj,
     DroppingTextObj,
-    SelectingTextObj
+    DraggingFigure,
+    DroppingFigure
 }
 
 export let intention: Intent = Intent.Nothing;

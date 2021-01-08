@@ -1,4 +1,8 @@
-export type FilterType = 'red' | 'green' | 'blue' | 'grey'
+export enum Figure {
+	triangle,
+	rectangle,
+	circle
+}
 
 export type Point = {
 	x: number,
@@ -25,10 +29,11 @@ export type TextObject = EditorObject & {
 	fontWeight: string,
 	fontStyle: string,
 	textDecoration: string,
+	backgroundColor: string
 }
 
 export type ShapeObject = EditorObject & {
-	type: 'triangle' | 'rectangle' | 'circle',
+	type: Figure,
 	backgroudColor: string,
 	borderColor: string,
 }

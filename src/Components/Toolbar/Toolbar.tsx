@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react'
+import React, { useState, useContext, useEffect, useRef } from 'react'
 import {Editor} from '../../model'
 import './Toolbar.css';
 import SelectFilter from '../Select/SelectFilter';
@@ -14,11 +14,15 @@ interface ToolbarProps {
     editor: Editor,
     toggleShowCamera: () => void,
     toggleShowTextArea: () => void,
+    showTextArea: Boolean,
+    onShapeObjClickHandler: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
 }
 
 function Toolbar(props: ToolbarProps) {
+      
+    let showTextBtnRef = useRef(null);
     const [filter, setFilter] = useState("grey");
-       
+        
     function selectFilterHandler(event: any): void {
         setFilter(event.target.value)
     }
@@ -55,7 +59,8 @@ function Toolbar(props: ToolbarProps) {
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
 
     useEffect(() => {
-
+        const showTextBtn: HTMLCanvasElement = showTextBtnRef.current!;
+        showTextBtn.style.backgroundColor = props.showTextArea ? '#F953BC' : '#FFFFFF';
     })
 
     return (
@@ -68,7 +73,16 @@ function Toolbar(props: ToolbarProps) {
             <SnapshotButton editor={props.editor} toggleShowCamera={props.toggleShowCamera}/>
             <button onClick={onClearSelectionHandler}>Cut</button>
             <button onClick={onSelectionCropHandler}>Crop</button>
-            <button onClick={props.toggleShowTextArea}>A</button>
+            <button 
+                ref={showTextBtnRef}
+                title="Текст"
+                onClick={props.toggleShowTextArea}
+            >A</button>
+            <button 
+                className=""
+                title="Фигура"
+                onClick={props.onShapeObjClickHandler}
+            >Фигура</button>
 
         </div>
     )

@@ -1,4 +1,4 @@
-import {FilterType, Point, EditorObject, SelectedArea, TextObject, ShapeObject, Editor} from './model';
+import {Figure, Point, EditorObject, SelectedArea, TextObject, ShapeObject, Editor} from './model';
 const defaultCanvasWidth = 800;
 const defaultCanvasHeight = 600;
 //const defaultPxArrLength = 1920000;
@@ -123,7 +123,6 @@ export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint
 }
 
 export function selectTextArea(editor: Editor, payload: {startPoint: Point, endPoint: Point}): Editor {
-	
 	return {
 		...editor,
 		selectedObject: {
@@ -140,7 +139,8 @@ export function selectTextArea(editor: Editor, payload: {startPoint: Point, endP
 			color: '#000000',
 			fontWeight: 'normal',
 			fontStyle: 'normal',
-			textDecoration: 'none'
+			textDecoration: 'none',
+			backgroundColor: 'rgba(255, 255, 255, 0.8)'
 		}
 	}
 }
@@ -404,10 +404,19 @@ export function applyFilter(editor: Editor, payload: {filterColor: string}): Edi
 }
 
 
-export function addFigure(editor: Editor, newFigure: ShapeObject): Editor {
+export function addFigure(editor: Editor, figureType: Figure): Editor {
+	const defaultShapeObj: ShapeObject = {
+		position: {x: editor.canvas.width / 2 - 50, y: editor.canvas.height / 2 - 50}, 
+		w: 100,
+		h: 100,
+		type: figureType,
+		backgroudColor: '#E382B6',
+		borderColor: '#9635B1',
+	}
+	
 	return {
 		...editor,
-		selectedObject: newFigure,
+		selectedObject: defaultShapeObj,
 	}
 }
 

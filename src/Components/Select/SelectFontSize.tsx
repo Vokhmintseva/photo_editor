@@ -1,14 +1,18 @@
 import React from 'react';
-import './SelectFont.css';
+import './SelectFontFamily.css';
 
-interface SelectFontProps {
+interface SelectFontSizeProps {
     label: string,
-    value: string,
-    onChange: (event: any) => void,
-    options: Array<string>;
+    value: number,
+    onChange: (event: any) => void
 }
 
-const SelectFont = (props: SelectFontProps) => {
+const sizes: Array<number> = [];
+for (let i=6; i < 100; i++) {
+    sizes[i] = i;
+}
+
+const SelectFontSize = (props: SelectFontSizeProps) => {
     const htmlFor = `${props.label}-${Math.random()}`
 
     return (
@@ -19,14 +23,11 @@ const SelectFont = (props: SelectFontProps) => {
                 value={props.value}
                 onChange={props.onChange}
             >
-                {props.options.map((option: any, index: any) => {
+                {sizes.map((option: any, index: any) => {
                     return (
                         <option
                             value={option}
                             key={index}
-                            style={{
-                                fontFamily: `${option}`
-                            }}
                         >
                             {option}
                         </option>
@@ -37,4 +38,4 @@ const SelectFont = (props: SelectFontProps) => {
     )
 }
 
-export default SelectFont;
+export default SelectFontSize;
