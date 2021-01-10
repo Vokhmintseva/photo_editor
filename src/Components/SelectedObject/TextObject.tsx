@@ -86,6 +86,23 @@ function wrapText(context: CanvasRenderingContext2D, text: string, x: number, y:
     }
 }
 
+const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRect, canvasCoords: DOMRect): {left: number, top: number} {
+
+    if (left < canvasCoords.left) {
+        left = canvasCoords.left;
+    }
+    if (left + textAreaCoords.width > canvasCoords.right) {
+        left = canvasCoords.right - textAreaCoords.width;
+    }
+    if (top < canvasCoords.top) {
+        top = canvasCoords.top;
+    }
+    if (top + textAreaCoords.height > canvasCoords.bottom) {
+        top = Math.max(canvasCoords.bottom - textAreaCoords.height, canvasCoords.top);
+    }
+    return {left, top}
+}
+
 const TextObject = (props: TextObjProps) => {
 
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
@@ -104,7 +121,6 @@ const TextObject = (props: TextObjProps) => {
     
     function calculateInitPos (editor: Editor) {
         const canvasCoords = canvas!.getBoundingClientRect();
-        
         return {
             x: editor.selectedObject!.position.x,
             y: canvasCoords.top + editor.selectedObject!.position.y,
@@ -127,8 +143,9 @@ const TextObject = (props: TextObjProps) => {
     />
 
     function onChangeSize(x: number, y: number, width: number, height: number) {
+        const canvasCoords = canvas!.getBoundingClientRect();
         setPosition({x, y, width, height});
-        dispatch(resizeEditorObj, {newPoint: {x, y}, newWidth: width, newHeight: height});
+        dispatch(resizeEditorObj, {newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
     function onFontFamilyChangeHandler(event: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -168,46 +185,35 @@ const TextObject = (props: TextObjProps) => {
     }
     
     function onMouseDownTextObjHandler(event: any) {
-        const canvasCoords = canvas!.getBoundingClientRect();
-        resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-        if (intention !== Intent.DraggingTextObj) return;
+        //const canvasCoords = canvas!.getBoundingClientRect();
+        // resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
+        // if (intention !== Intent.DraggingTextObj) return;
+        if (event.defaultPrevented) return;
         console.log('TEXT in onMouseDownTextObjHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
     }
         
-    const adjustCoords = function (left: number, top: number): {left: number, top: number} {
-        const textAreaElem: HTMLTextAreaElement = textAreaRef.current!;
-        const textAreaCoords = textAreaElem.getBoundingClientRect();
-        const canvasCoords = canvas!.getBoundingClientRect();
-        if (left < canvasCoords.left) {
-            left = canvasCoords.left;
-        }
-        if (left + textAreaCoords.width > canvasCoords.right) {
-            left = canvasCoords.right - textAreaCoords.width;
-        }
-        if (top < canvasCoords.top) {
-            top = canvasCoords.top;
-        }
-        if (top + textAreaCoords.height > canvasCoords.bottom) {
-            top = Math.max(canvasCoords.bottom - textAreaCoords.height, canvasCoords.top);
-        }
-        return {left, top}
-    }
-    
     const onMouseMoveTextObjHandler = function (event: any) {
+        if (event.defaultPrevented) return;
         if (isMousePressed) {
-            const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
+            const textAreaElem: HTMLTextAreaElement = textAreaRef.current!;
+            const textAreaCoords = textAreaElem.getBoundingClientRect();
+            const canvasCoords = canvas!.getBoundingClientRect();
+            const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, textAreaCoords, canvasCoords);
             setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
         }
     }
 
     const onMouseUpTextObjHandler = function (event: any) {
+        if (event.defaultPrevented) return;
         if (!isMousePressed) return;
-        setIntention(Intent.WorkWithTextObj);
-        console.log('TEXT in onMouseUpTextObjHandler function');
+        //setIntention(Intent.WorkWithTextObj);
+        //console.log('TEXT in onMouseUpTextObjHandler function');
         const canvasCoords = canvas!.getBoundingClientRect();
-        const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
+        const textAreaElem: HTMLTextAreaElement = textAreaRef.current!;
+        const textAreaCoords = textAreaElem.getBoundingClientRect();
+        const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, textAreaCoords, canvasCoords);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
         dispatch(dropTextObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
@@ -264,13 +270,6 @@ const TextObject = (props: TextObjProps) => {
                 <div>
                     {selectFontSize}
                 </div>
-                {/* <div>
-                    <label>Заливка</label>
-                    <input
-                        type='color'
-                        onChange={onChangeBackgroundColorHandler}
-                    ></input>
-                </div> */}
                 <div>
                     <button 
                         className="applyBtn"
@@ -307,25 +306,21 @@ const TextObject = (props: TextObjProps) => {
 
             <Slider
                 pos={position}
-                //editor={props.editor}
                 changeSize={onChangeSize}
                 type={SliderType.LeftTop}
             />  
             <Slider
                 pos={position}
-                //editor={props.editor}
                 changeSize={onChangeSize}
                 type={SliderType.RightTop}
             />  
             <Slider
                 pos={position}
-                //editor={props.editor}
                 changeSize={onChangeSize}
                 type={SliderType.LeftBottom}
             />  
             <Slider
                 pos={position}
-                //editor={props.editor}
                 changeSize={onChangeSize}
                 type={SliderType.RightBottom}
             />       

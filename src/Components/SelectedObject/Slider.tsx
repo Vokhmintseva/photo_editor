@@ -11,69 +11,127 @@ import { setIntention, intention, Intent } from '../../intentResolver';
 import SliderType from './slyderType';
 import './SelectedObject.css';
 
+const halfSizeOfSlider: number = 3;
+const borderWidth: number = 2;
+
 interface SliderProps {
     pos: {x: number, y: number, width: number, height: number},
     changeSize: (x: number, y: number, width: number, height: number) => void,
     type: SliderType
 }
 
+const adjustCoords = function (x: number, y: number, canvasCoords: DOMRect): {x: number, y: number} {
+
+    if (x < canvasCoords.left) {
+        x = canvasCoords.left;
+    }
+    if (x > canvasCoords.right - halfSizeOfSlider - borderWidth) {
+        x = canvasCoords.right - halfSizeOfSlider - borderWidth;
+    }
+    if (y < canvasCoords.top) {
+        y = canvasCoords.top;
+    }
+    if (y > canvasCoords.bottom - halfSizeOfSlider - borderWidth) {
+        y = canvasCoords.bottom - halfSizeOfSlider - borderWidth;
+    }
+    return {x, y}
+}
+
+const getNewTextAreaParams = function(clientX: number, clientY: number, initPoints: any, canvasCoords: DOMRect, sliderType: SliderType) :
+{x: number, y: number, width: number, height: number}
+{
+    let x: number = 0;
+    let y: number = 0;
+    let width: number = 0;
+    let height: number = 0;
+    let adjastedCoords;
+    switch (sliderType) {
+    case SliderType.LeftTop:
+        if (clientX > initPoints.rightTop.x)
+            clientX = initPoints.rightTop.x;
+        if (clientY > initPoints.leftBottom.y)
+            clientY = initPoints.rightTop.y;      
+        adjastedCoords = adjustCoords(clientX, clientY, canvasCoords);
+        x = adjastedCoords.x;
+        y = adjastedCoords.y;
+        width = initPoints.rightTop.x - x;
+        height = initPoints.leftBottom.y - y;
+        break;
+    case SliderType.LeftBottom:
+        if (clientX > initPoints.rightBottom.x)
+            clientX = initPoints.rightBottom.x;
+        if (clientY < initPoints.leftTop.y)
+            clientY = initPoints.leftTop.y;      
+        adjastedCoords =  adjustCoords(clientX, clientY, canvasCoords);
+        x = adjastedCoords.x;
+        y = initPoints.leftTop.y;
+        width = initPoints.rightBottom.x - x;
+        height = adjastedCoords.y - y;
+        break;
+    case SliderType.RightTop:
+        if (clientX < initPoints.leftTop.x)
+            clientX = initPoints.leftTop.x;
+        if (clientY > initPoints.rightBottom.y)
+            clientY = initPoints.rightBottom.y;     
+        adjastedCoords =  adjustCoords(clientX, clientY, canvasCoords);
+        x = initPoints.leftTop.x;
+        y = adjastedCoords.y;
+        width = adjastedCoords.x - x;
+        height = initPoints.rightBottom.y - y;
+        break;   
+    case SliderType.RightBottom:
+        if (clientX < initPoints.leftTop.x)
+            clientX = initPoints.leftTop.x;
+        if (clientY < initPoints.leftTop.y)
+            clientY = initPoints.leftTop.y;  
+        adjastedCoords =  adjustCoords(clientX, clientY, canvasCoords);
+        x = initPoints.leftTop.x;
+        y = initPoints.leftTop.y;
+        width = adjastedCoords.x - x;
+        height = adjastedCoords.y - y;
+        break; 
+    }
+    return {x, y, width, height};
+}
+
 function Slider(props: SliderProps) {
     let sliderRef = useRef(null);
     let offset = useRef({x: 0, y: 0});
     let cursorStyle = useRef('');
-    //const [position, setPosition] = useState({x: props.pos.x, y: props.pos.y});
+    //let initPoints = useRef({leftTop: {x: 0, y: 0}, leftBottom: {x: 0, y: 0}, rightTop: {x: 0, y: 0}, rightBottom: {x: 0, y: 0}});
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
-    const borderWidth: number = 2;
-    const halfSizeOfSlider: number = 3;
+
+    let isMousePressed = useRef(false);
 
     function onMouseDownSliderHandler(event: any) {
-        // const canvasCoords = canvas!.getBoundingClientRect();
-        // resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-        // if (intention !== Intent.DraggingTextObj) return;
-        // console.log('TEXT in onMouseDownTextObjHandler function');
-        // setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
-        // setIsMousePressed(true);
+        console.log('SLIDER on mouse down');
+        isMousePressed.current = true;
+        event.preventDefault();
     }
         
-    const adjustCoords = function (left: number, top: number): {left: number, top: number} {
-        const sliderElem: HTMLTextAreaElement = sliderRef.current!;
-        const textAreaCoords = sliderElem.getBoundingClientRect();
-        const canvasCoords = canvas!.getBoundingClientRect();
-        if (left < canvasCoords.left) {
-            left = canvasCoords.left;
-        }
-        if (left + textAreaCoords.width > canvasCoords.right) {
-            left = canvasCoords.right - textAreaCoords.width;
-        }
-        if (top < canvasCoords.top) {
-            top = canvasCoords.top;
-        }
-        if (top + textAreaCoords.height > canvasCoords.bottom) {
-            top = Math.max(canvasCoords.bottom - textAreaCoords.height, canvasCoords.top);
-        }
-        return {left, top}
-    }
-    
     const onMouseMoveSliderHandler = function (event: any) {
-        // if (isMousePressed) {
-        //     const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
-        //     setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
-        // }
+        if (isMousePressed.current) {
+            const canvasCoords = canvas!.getBoundingClientRect();
+            const initPoints = {
+                leftTop: {x: props.pos.x, y: props.pos.y},
+                leftBottom: {x: props.pos.x, y: props.pos.y + props.pos.height},
+                rightTop: {x: props.pos.x + props.pos.width, y: props.pos.y},
+                rightBottom: {x: props.pos.x + props.pos.width, y: props.pos.y + props.pos.height}
+            };
+            const {x, y, width, height} = getNewTextAreaParams(event.clientX, event.clientY, {...initPoints}, canvasCoords, props.type);
+            props.changeSize(x, y, width, height);
+            event.preventDefault();
+        }
     }
 
     const onMouseUpSliderHandler = function (event: any) {
-        // if (!isMousePressed) return;
-        // console.log('TEXT in onMouseUpTextObjHandler function');
-        // const canvasCoords = canvas!.getBoundingClientRect();
-        // const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
-        // setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
-        // dispatch(dropTextObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
-        // setIsMousePressed(false);
+        if (!isMousePressed.current) return;
+        isMousePressed.current = false;
+        event.preventDefault();
     }
 
     useEffect(() => { 
         //const canvasCoords = canvas!.getBoundingClientRect();
-        console.log(intention);
         switch (props.type) {
         case SliderType.LeftTop:
             offset.current = {x: -halfSizeOfSlider, y: -halfSizeOfSlider};
@@ -104,14 +162,7 @@ function Slider(props: SliderProps) {
 
         };
     });  
-
-    // useEffect(() => { 
-    //     const canvasCoords = canvas!.getBoundingClientRect();
-    //     setPosition({
-    //         x: props.pos.x,
-    //         y: props.pos.y,
-    //     });
-    // }, []);
+   
     return (
         <div 
             ref={sliderRef}

@@ -3,6 +3,7 @@ import {Editor} from '../../model';
 import './Canvas.css';
 import SelectingSA from '../SelectedObject/SelectingSA';
 import SelectingTextObject from '../SelectedObject/SelectingTextObject';
+import { isTextObject } from '../../actions';
 
 interface CanvasProps {
     editor: Editor,
@@ -11,14 +12,8 @@ interface CanvasProps {
 }
     
 const Canvas = (props: CanvasProps) => {
-    console.log('rendering Canvas');
-    
     let canvasRef = useRef(null);
-
-
-
     //useMakeSelection(canvasRef, selRef, props.editor);
-          
     useEffect(() => { //функция запутится после рендеринга
         const canvas: HTMLCanvasElement = canvasRef.current!;
         let context = canvas.getContext('2d') as CanvasRenderingContext2D;

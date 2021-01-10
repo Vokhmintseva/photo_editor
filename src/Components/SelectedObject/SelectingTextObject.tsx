@@ -28,10 +28,11 @@ const SelectingTextObject = (props: TextAreaProps) => {
     });
         
     function onMouseDownSVGHandler(event: any) {
+        if (props.editor.selectedObject) return;
         const canvasCoords = canvas!.getBoundingClientRect();
         if (event.clientY < canvasCoords.top) return;
-        if (intention !== Intent.SelectingTextObj) return;
-        console.log('TEXT SELECTING onMouseDownSVGHandler');
+        // if (intention !== Intent.SelectingTextObj) return;
+        // console.log('TEXT SELECTING onMouseDownSVGHandler');
         setMouseState({
             ...mouseState,
             down: {
@@ -62,7 +63,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
         if (!mouseState.isMousePressed) return;
         console.log('TEXT SELECTING onMouseUpSVGHandler');
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
-            setIntention(Intent.WorkWithTextObj);
+            //setIntention(Intent.WorkWithTextObj);
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
                 { x: mouseState.down.x, y: mouseState.down.y },
@@ -85,7 +86,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
     }
     
     useEffect(() => {
-        setIntention(Intent.SelectingTextObj);
+        //setIntention(Intent.SelectingTextObj);
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
             dispatch(joinSelectionWithCanvas, {})
             dispatch(deSelectArea, {});
