@@ -42,7 +42,10 @@ function Toolbar(props: ToolbarProps) {
 
 
     function onClearAllHandler() {
-        dispatch(createCanvas, {width: canvas!.width, height: canvas!.height});
+        let shouldremoveCanvas = window.confirm("Текущий холст будет удален. Вы подтверждаете удаление холста?");
+        if (shouldremoveCanvas) {
+            dispatch(createCanvas, {width: 800, height: 600});
+        } 
     }
 
     const select = <SelectFilter
@@ -67,7 +70,7 @@ function Toolbar(props: ToolbarProps) {
         <div className='toolbar'>
             <OpenButton editor={props.editor} />
             <SaveButton editor={props.editor} />
-            <button onClick={onClearAllHandler}>ClearAll</button>
+            <button onClick={onClearAllHandler}>New Canvas</button>
             {select}
             <button onClick={filterButtonHandler}>Применить фильтр</button>
             <SnapshotButton editor={props.editor} toggleShowCamera={props.toggleShowCamera}/>

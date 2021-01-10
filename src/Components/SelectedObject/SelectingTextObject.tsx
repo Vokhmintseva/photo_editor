@@ -1,12 +1,11 @@
-import React, { useState, useRef, useEffect, useContext}  from 'react';
+import React, { useState, useRef, useEffect, useContext }  from 'react';
 import {Editor} from '../../model';
 import {dispatch} from '../../reducer';
 import {selectTextArea, deSelectArea, joinSelectionWithCanvas, isSelectedArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
-import { intention, Intent } from '../../intentResolver';
+import { setIntention, intention, Intent } from '../../intentResolver';
 import './SelectedObject.css';
-//import './TextArea.tsx';
 
 interface TextAreaProps {
     editor: Editor,
@@ -15,11 +14,6 @@ interface TextAreaProps {
 const SelectingTextObject = (props: TextAreaProps) => {
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);  
     let svgRef = useRef(null);
-    const [text, setText] = useState('');
-
-    function onInputChangeHandler(event:React.ChangeEvent<HTMLInputElement>) {
-        setText(event.target.value);
-    }
 
     const [mouseState, setMouseState] = useState({
         down: {
@@ -68,6 +62,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
         if (!mouseState.isMousePressed) return;
         console.log('TEXT SELECTING onMouseUpSVGHandler');
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
+            setIntention(Intent.WorkWithTextObj);
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
                 { x: mouseState.down.x, y: mouseState.down.y },
@@ -89,13 +84,12 @@ const SelectingTextObject = (props: TextAreaProps) => {
         });
     }
     
-    
-    
-    
     useEffect(() => {
+        setIntention(Intent.SelectingTextObj);
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
             dispatch(joinSelectionWithCanvas, {})
             dispatch(deSelectArea, {});
+            
         }
     }, []);
 

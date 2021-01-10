@@ -9,7 +9,6 @@ import ShapeObject from '../SelectedObject/ShapeObject';
 import Canvas from '../Canvas/Canvas';
 import './EditorComponent.css';
 import { Intent, setIntention } from '../../intentResolver';
-import TextBar from '../TextBar/TextBar';
 import { dispatch } from '../../reducer';
 
 interface EditorComponentProps {
@@ -44,12 +43,9 @@ function EditorComponent(props: EditorComponentProps) {
         setShowShapeObj(!showShapeObj);
     }
     
-    useEffect(() => {
-        showTextArea ? setIntention(Intent.SelectingTextObj) : setIntention(Intent.Nothing);
-    })
-
-    // let canvasStyles: Array<String> = ['canvas'];
-    // if (isVideoPlaying) canvasStyles.push('canvasNotVisible');
+    // useEffect(() => {
+    //     showTextArea ? setIntention(Intent.SelectingTextObj) : setIntention(Intent.Nothing);
+    // })
          
     return (
         <CanvasContext.Provider value={canvas}>
@@ -62,11 +58,6 @@ function EditorComponent(props: EditorComponentProps) {
                     onShapeObjClickHandler={onShapeObjClickHandler}
                 />
 
-                {/* {(props.editor.selectedObject && isTextObject(props.editor.selectedObject) ) &&
-                <TextBar
-                    editor={props.editor}
-                />} */}
-
                 {(props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) &&
                 <SelectedArea
                     editor={props.editor}
@@ -75,6 +66,7 @@ function EditorComponent(props: EditorComponentProps) {
                 {(props.editor.selectedObject && isTextObject(props.editor.selectedObject)) &&
                 <TextObject
                     editor={props.editor}
+                    toggleShowTextArea={toggleShowTextArea}
                 />}
 
                 {showShapeObj &&

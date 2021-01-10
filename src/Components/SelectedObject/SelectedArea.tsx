@@ -21,7 +21,6 @@ const SelectedArea = (props: SelectedAreaProps) => {
     console.log('rendering SelectedArea');
     
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
-    const borderWidth = 1;
     const canvasCoords = canvas!.getBoundingClientRect();
 
     const [isMousePressed, setIsMousePressed] = useState(false);
@@ -59,7 +58,7 @@ const SelectedArea = (props: SelectedAreaProps) => {
             left = canvasCoords.right - selCanv.width;
         }
         if (top < canvasCoords.top) {
-            top = canvasCoords.top - borderWidth;
+            top = canvasCoords.top;
         }
         if (top + selCanv.height > canvasCoords.bottom) {
             top = Math.max(canvasCoords.bottom - selCanv.height, canvasCoords.top);
@@ -82,31 +81,7 @@ const SelectedArea = (props: SelectedAreaProps) => {
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
         dispatch(dropSelection, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
-
     }
-
-
-    // function getSelectionParams (start: {x: number, y: number}, end: {x: number, y: number}) {
-    //     const canv: HTMLCanvasElement = canvasRef.current!;
-    //     const canvasCoord = canv.getBoundingClientRect();
-    //     let startX = Math.min(start.x, end.x, canvasCoord.width);
-    //     let startY = Math.max(canvasCoord.y, Math.min(canvasCoord.y + canvasCoord.height, end.y, start.y));
-    //     let endX = Math.min(Math.max(end.x, start.x), canvasCoord.width);
-    //     let endY = Math.min(startY + Math.abs(end.y - start.y), canvasCoord.y + canvasCoord.height);
-    //     return ({
-    //         startX: startX,
-    //         startY: startY,
-    //         endX: endX,
-    //         endY: endY,
-    //         width: endX - startX,
-    //         height: endY - startY,
-    //     })
-    // }
-
-    // useEffect(() => { 
-    //     document.addEventListener('mousemove', onMouseMoveSAHandler);
-    //     document.addEventListener('mouseup', onMouseUpSAHandler);
-    // }, [isMousePressed, offset]);
 
     useEffect(() => { 
         const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
@@ -126,16 +101,16 @@ const SelectedArea = (props: SelectedAreaProps) => {
     useEffect(() => {
         const selCanvas: HTMLCanvasElement = selCanvasRef.current!;
         let selContext = selCanvas.getContext('2d') as CanvasRenderingContext2D;
-        selCanvas.style.top = position.y! - borderWidth * 2 + 'px';
-        selCanvas.style.left = position.x! - borderWidth * 2 + 'px';
+        selCanvas.style.top = position.y! + 'px';
+        selCanvas.style.left = position.x! + 'px';
         selCanvas.setAttribute('width', props.editor.selectedObject!.w.toString());
         selCanvas.setAttribute('height', props.editor.selectedObject!.h.toString());
         if (isSelectedArea(props.editor.selectedObject)) {
             let selAreaImgData: ImageData = props.editor.selectedObject!.pixelArray;
             selContext.putImageData(
                 selAreaImgData, 
-                0,
-                0,
+                -1,
+                -1,
                 0,
                 0,
                 props.editor.selectedObject.w,

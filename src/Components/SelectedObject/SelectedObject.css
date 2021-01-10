@@ -1,8 +1,10 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:regular,bold,italic&subset=latin,latin-ext');
+
 .selCanvas {
     position: absolute;
     border: 1px dashed black;
     display: block;
-    z-index: 50;
+    z-index: 10; 
 }
 
 .handle {
@@ -15,13 +17,14 @@
 .textSelection {
     position: absolute;
     border: 1px dashed black;
-    display: block;
+    display: none;
     z-index: 50; 
 }
 
 .textField {
     position: absolute;
-    z-index: 50;
+    z-index: 10;
+    resize: none;
 }
 
 .boldFontButtton {
@@ -93,4 +96,15 @@
 
 .shapeBar {
    height: 30px;
+}
+
+.slider {
+    display: block;
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: blueviolet;
+    border: solid 1px black;
+    z-index: 50 !important;
+    /* cursor: se-resize; */
 }

@@ -2,15 +2,16 @@ import { Editor } from "./model";
 import { isSelectedArea, isTextObject } from './actions';
 
 export enum Intent {
-    Nothing,
-    SelectingSA,
-    DraggingSA,
-    DroppingSA,
-    SelectingTextObj,
-    DraggingTextObj,
-    DroppingTextObj,
-    DraggingFigure,
-    DroppingFigure
+    Nothing, //0
+    SelectingSA, //1
+    DraggingSA,  //2
+    DroppingSA, // 3
+    SelectingTextObj, //4
+    DraggingTextObj, //5
+    DroppingTextObj, //6
+    WorkWithTextObj, //7
+    DraggingFigure, //8
+    DroppingFigure //9
 }
 
 export let intention: Intent = Intent.Nothing;
@@ -44,7 +45,7 @@ export function resolve(editor: Editor, mouseCoords: {x: number, y: number}, bou
     }
     
     if (intention == Intent.SelectingTextObj) return;
-    console.log('code is here');
+
     if (editor.selectedObject && isSelectedArea(editor.selectedObject)) {
         if (isInSelectedObjClick(editor, mouseCoords, bounds)) {
             intention = Intent.DraggingSA;

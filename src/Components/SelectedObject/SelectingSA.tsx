@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useContext}  from 'react';
 import { Editor } from '../../model';
 import { dispatch, editor } from '../../reducer';
-import { selectArea, cut } from '../../actions';
+import { selectArea, whitenArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
 import { resolve, intention, Intent } from '../../intentResolver';
@@ -61,6 +61,8 @@ const MakingSelection = (props: MakingSelectionProps) => {
     const onMouseUpSVGHandler = function (event: any) {
         if (!mouseState.isMousePressed) return;
         console.log('SA SELECTING onMouseUpSVGHandler');
+        console.log(event.clientX);
+        console.log(event.clientY);
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
@@ -68,14 +70,14 @@ const MakingSelection = (props: MakingSelectionProps) => {
                 { x: event.clientX, y: event.clientY },
                 canvasCoords
             );
-            const startX = selectionCoords.startX + 2 as number;
-            const startY = selectionCoords.startY + 2 as number;
-            const endX = selectionCoords.endX + 2 as number;
-            const endY = selectionCoords.endY + 2 as number;
-            
+            const startX = selectionCoords.startX as number;
+            const startY = selectionCoords.startY as number;
+            const endX = selectionCoords.endX as number;
+            const endY = selectionCoords.endY as number;
+                  
             //if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
                 dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
-                dispatch(cut, {});
+                dispatch(whitenArea, {});
             //}
 
         }

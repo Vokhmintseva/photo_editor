@@ -35,9 +35,11 @@ const Canvas = (props: CanvasProps) => {
                 className="canvas"
             />
 
+            {!props.showTextArea &&
             <SelectingSA 
                 editor={props.editor}                
             />
+            }       
 
             {props.showTextArea &&
             <SelectingTextObject

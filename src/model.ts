@@ -26,7 +26,7 @@ export type TextObject = EditorObject & {
 	fontFamily: string,
 	fontSize: number,
 	color: string,
-	fontWeight: string,
+	fontWeight: number,
 	fontStyle: string,
 	textDecoration: string,
 	backgroundColor: string

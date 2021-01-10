@@ -1,4 +1,5 @@
 import {Figure, Point, EditorObject, SelectedArea, TextObject, ShapeObject, Editor} from './model';
+import EditorComponent from './Components/EditorComponent/EditorComponent';
 const defaultCanvasWidth = 800;
 const defaultCanvasHeight = 600;
 //const defaultPxArrLength = 1920000;
@@ -9,9 +10,9 @@ export function cleanCanvas(width: number = defaultCanvasWidth, height: number =
 	//crypto.getRandomValues(buffer);
 	for (let i: number = 0; i < pixelArrayLength; i += 4) {
 		bufferArray[i] = 255; 
-		bufferArray[i + 1] = 122;
-		bufferArray[i + 2] = 255;
-		bufferArray[i + 3] = 70;
+		bufferArray[i + 1] = 201;
+		bufferArray[i + 2] = 245;
+		bufferArray[i + 3] = 255;
 	}
 	return new ImageData(new Uint8ClampedArray(bufferArray.buffer), width, height);
 }
@@ -32,6 +33,22 @@ export function resizeCanvas(editor: Editor, payload: {newWidth: number, newHeig
 			width: payload.newWidth,
 			height: payload.newHeight
 		}
+	}
+}
+
+export function resizeEditorObj(editor: Editor, payload: {newPoint: Point, newWidth: number, newHeight: number}): Editor {
+	if(editor.selectedObject) {
+		return {
+			...editor,
+			selectedObject: {
+				...editor.selectedObject,
+				position: payload.newPoint,	
+				w: payload.newWidth,
+				h: payload.newHeight
+			}
+		} 
+	} else {
+		return editor;
 	}
 }
 
@@ -134,10 +151,10 @@ export function selectTextArea(editor: Editor, payload: {startPoint: Point, endP
 			w: Math.abs(payload.startPoint.x - payload.endPoint.x), 
 			h: Math.abs(payload.startPoint.y - payload.endPoint.y),
 			text: '',
-			fontFamily: 'Times New Roman',
+			fontFamily: 'Roboto',
 			fontSize: 20,
 			color: '#000000',
-			fontWeight: 'normal',
+			fontWeight: 400,
 			fontStyle: 'normal',
 			textDecoration: 'none',
 			backgroundColor: 'rgba(255, 255, 255, 0.8)'
@@ -246,8 +263,8 @@ export function getImageDataByCoords(editor: Editor, startPoint: Point, endPoint
 	let pixelArrayLength: number = selectionWidth * selectionHeight * 4;
 	let bufferArray = new Uint8Array(pixelArrayLength);
 	let k: number = 0; 
-	for (let y: number = startPoint.y - 1; y < endPoint.y - 1; y++) {
-		for (let x: number = startPoint.x - 1; x < endPoint.x - 1; x++) {
+	for (let y: number = startPoint.y; y < endPoint.y; y++) {
+		for (let x: number = startPoint.x; x < endPoint.x; x++) {
 			let index: number = getPxArrIndex(editor, {x, y})
 			for (let i = index; i < index + 4; i++) {
 				bufferArray[k] = editor.canvas.data[i];
@@ -320,6 +337,14 @@ export function makeSelectionBeTransparent(editor: Editor, arr: Array<number>): 
 	return new ImageData(newPxArray, editor.canvas.width, editor.canvas.height);
 }
 
+export function makeSelectionBeWhite(editor: Editor, arr: Array<number>): ImageData {
+	let newPxArray: Uint8ClampedArray = editor.canvas.data.slice();
+	for (let i: number = 0; i < arr.length; i ++) {
+		newPxArray[arr[i]] = 255; 
+	}
+	return new ImageData(newPxArray, editor.canvas.width, editor.canvas.height);
+}
+
 //перекрасить в белый цвет все, кроме выделенной области
 export function whitenAllExceptSelection(editor: Editor, arr: Array<number>): ImageData {
 	let pxArray: Uint8ClampedArray = editor.canvas.data.slice();
@@ -341,7 +366,13 @@ export function cut(editor: Editor, payload: Object): Editor {
 	return {
 		...editor,
 		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)),
-		//selectedObject: null,
+	}
+}
+
+export function whitenArea(editor: Editor, payload: Object): Editor {
+	return {
+		...editor,
+		canvas: makeSelectionBeWhite(editor, getIndexes(editor)),
 	}
 }
 
