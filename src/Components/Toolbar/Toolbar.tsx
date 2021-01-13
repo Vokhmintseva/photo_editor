@@ -7,8 +7,6 @@ import SaveButton from '../Buttons/SaveButton';
 import SnapshotButton from '../Buttons/SnapshotButton';
 import {applyFilter, cut, crop, createCanvas, deSelectArea} from '../../actions';
 import { dispatch } from '../../reducer';
-import {CanvasContext} from '../EditorComponent/EditorComponent';
-import { setIntention, intention, Intent } from '../../intentResolver';
 
 interface ToolbarProps {
     editor: Editor,
@@ -40,7 +38,6 @@ function Toolbar(props: ToolbarProps) {
         dispatch(crop, {});
     }
 
-
     function onClearAllHandler() {
         let shouldremoveCanvas = window.confirm("Текущий холст будет удален. Вы подтверждаете удаление холста?");
         if (shouldremoveCanvas) {
@@ -59,7 +56,7 @@ function Toolbar(props: ToolbarProps) {
             {text: "blue", value: "blue"},
         ]}
     />
-    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
+    //let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
 
     useEffect(() => {
         const showTextBtn: HTMLCanvasElement = showTextBtnRef.current!;
@@ -81,11 +78,33 @@ function Toolbar(props: ToolbarProps) {
                 title="Текст"
                 onClick={props.toggleShowTextArea}
             >A</button>
-            <button 
+            {/* <button 
                 className=""
                 title="Фигура"
                 onClick={props.onShapeObjClickHandler}
-            >Фигура</button>
+            >Фигура</button> */}
+            <div className="ShapeBar">
+                
+                <button 
+                    className="circleBtn"
+                    title="Круг"
+                    id="circle"
+                    onClick={props.onShapeObjClickHandler}
+                ></button>
+                <button 
+                    className="rectangleBtn"
+                    title="Прямоугольник"
+                    id="rectangle"
+                    onClick={props.onShapeObjClickHandler}
+                ></button>
+                <button 
+                    className="triangleBtn"
+                    title="Треугольник"
+                    id="triangle"
+                    onClick={props.onShapeObjClickHandler}
+                ></button>
+
+            </div>
 
         </div>
     )

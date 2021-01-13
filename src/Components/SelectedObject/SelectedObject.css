@@ -62,32 +62,7 @@
     background-size: 100%;
 }
 
-.textBar, 
-.shapeBar {
-    display: flex;
-    flex-direction: row;
-}
 
-.circleBtn {
-    background: url('../../images/circle.png') no-repeat; 
-    width: 25px;
-    height: 25px;
-    background-size: 100%;
-}
-
-.rectangleBtn {
-    background: url('../../images/square.png') no-repeat; 
-    width: 25px;
-    height: 25px;
-    background-size: 100%;
-}
-
-.triangleBtn {
-    background: url('../../images/triangle.png') no-repeat; 
-    width: 25px;
-    height: 25px;
-    background-size: 100%;
-}
 
 .shapeBorder {
    position: absolute;
@@ -106,5 +81,17 @@
     background-color: blueviolet;
     border: solid 1px black;
     z-index: 50 !important;
-    /* cursor: se-resize; */
+}
+
+.shapeBar {
+    display: grid;
+}
+
+.shapeObjcanvasSel
+{
+    position: absolute;
+    border: 2px dashed black;
+    display: block;
+    z-index: 10; 
+    cursor: move;
 }

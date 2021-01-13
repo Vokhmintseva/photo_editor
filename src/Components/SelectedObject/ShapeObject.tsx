@@ -2,149 +2,217 @@ import React, { useRef, useEffect, useState, useContext }  from 'react';
 import { Editor, Figure } from '../../model';
 import './SelectedObject.css';
 import { dispatch } from '../../reducer';
-import { dropTextObj, isTextObject, addImage, deSelectArea } from '../../actions';
+import { setFigureBorderColor, setFigureBackgroundColor, resizeEditorObj, dropShapeObj } from '../../actions';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
-import { resolve, intention, Intent } from '../../intentResolver';
+import Slider from './Slider';
+import SliderType from './slyderType';
 
 interface ShapeObjProps {
     editor: Editor,
+    figure: Figure,
+    showShapeObjHundler: () => void,
+}
+
+const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRect, canvasCoords: DOMRect): {left: number, top: number} {
+    if (left < canvasCoords.left) {
+        left = canvasCoords.left;
+    }
+    if (left + textAreaCoords.width > canvasCoords.right) {
+        left = canvasCoords.right - textAreaCoords.width;
+    }
+    if (top < canvasCoords.top) {
+        top = canvasCoords.top;
+    }
+    if (top + textAreaCoords.height > canvasCoords.bottom) {
+        top = Math.max(canvasCoords.bottom - textAreaCoords.height, canvasCoords.top);
+    }
+    return {left, top}
+}
+
+function calculateInitPos(editor: Editor, canvasCoords: DOMRect) {
+    return {
+        x: editor.selectedObject!.position.x,
+        y: editor.selectedObject!.position.y + canvasCoords.top,
+        width: editor.selectedObject!.w,
+        height: editor.selectedObject!.h
+    }
+}
+
+function drawFigure(figure: Figure, context: CanvasRenderingContext2D, position: any) {
+    switch (figure.toString()) {
+    
+    case 'circle':
+        context.beginPath();
+        context.ellipse(position.width / 2, position.height / 2, position.width / 2, position.height / 2 , 0, 0, Math.PI*2);
+        context.stroke();
+        break;
+    case 'triangle':
+        context.beginPath();
+        context.moveTo(0, position.height);
+        context.lineTo(position.width, position.height);
+        context.lineTo(position.width / 2, 0);
+        context.closePath();
+        context.stroke();
+        break;  
+    case 'rectangle':
+        context.beginPath();
+        context.moveTo(0, position.height);
+        context.lineTo(position.width, position.height);
+        context.lineTo(position.width, 0);
+        context.lineTo(0, 0);
+        context.closePath();
+        context.stroke();
+        break;
+    }
 }
 
 const ShapeObject = (props: ShapeObjProps) => {
-    let svgRef = useRef(null);
-    const [figureType, setFigureType] = useState(Figure.circle);
-    const [figureSelected, setFigureSelected] = useState(false);
-    function onShapeObjClickHandler(event: any) {
-        const figure: Figure = event.target.id
-        setFigureType(figure);
-        setFigureSelected(true);
-    }
-     
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
-    // const borderWidth = 1;
-    // //const canvasCoords = canvas!.getBoundingClientRect();
-    // function calculateInitPos (props: ShapeObjProps) {
-    //     const canvasCoords = canvas!.getBoundingClientRect();
-    //     return {
-    //         x: props.editor.selectedObject!.position.x,
-    //         y: canvasCoords.top + props.editor.selectedObject!.position.y
-    //     }
-    // }
-
-    // const [isMousePressed, setIsMousePressed] = useState(false);
-    // const [offset, setOffset] = useState({x: 0, y: 0});
-    // const [position, setPosition] = useState(() => {return calculateInitPos(props)});
-
-
-    // function onMouseDownHandler(event: any) {
-    //     const canvasCoords = canvas!.getBoundingClientRect();
-    //     if (event.clientY < canvasCoords.top) return;
-    //     resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-    //     if (intention !== Intent.DroppingTextObj) return;
-    //     console.log('TEXT in onMouseDownHandler function');
-    //     if (isTextObject(props.editor.selectedObject)) {
-    //         console.log("слияние с канвасом");
-    //         //dispatch(joinSelectionWithCanvas, {});
-    //     }
-    // }
+    const canvasCoords = canvas!.getBoundingClientRect();
+    const [isMousePressed, setIsMousePressed] = useState(false);
+    const [offset, setOffset] = useState({x: 0, y: 0});
+    const [position, setPosition] = useState(() => calculateInitPos(props.editor, canvasCoords));
     
-    // function onMouseDownTextObjHandler(event: any) {
-    //     const canvasCoords = canvas!.getBoundingClientRect();
-    //     resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-    //     if (intention !== Intent.DraggingTextObj) return;
-    //     console.log('TEXT in onMouseDownTextObjHandler function');
-    //     setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
-    //     setIsMousePressed(true);
-    // }
+    let canvasRef = useRef(null);
+  
+    function onChangeSize(x: number, y: number, width: number, height: number) {
+        const canvasCoords = canvas!.getBoundingClientRect();
+        setPosition({x, y, width, height});
+        dispatch(resizeEditorObj, {newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
+    }
+
+    function onApplyShapeSelectionHandler(event: any) {
+
+    }
+
+    function onChangeBorderColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
+        dispatch(setFigureBorderColor, {newColor: event.target.value});
+    }
+
+    function onChangeBackgroundColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
+        dispatch(setFigureBackgroundColor, {newColor: event.target.value});
+    }
+ 
+    function onMouseDownShapeObjHandler(event: any) {
+        if (event.defaultPrevented) return;
+        console.log('SHAPE in onMouseDownTextObjHandler function');
+        setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
+        setIsMousePressed(true);
+    }
         
-    // const adjustCoords = function (left: number, top: number): {left: number, top: number} {
-    //     const svg: HTMLCanvasElement = svgRef.current!;
-    //     const canvasCoords = canvas!.getBoundingClientRect();
-    //     if (left < canvasCoords.left) {
-    //         left = canvasCoords.left;
-    //     }
-    //     if (left + svg.width > canvasCoords.right) {
-    //         left = canvasCoords.right - svg.width;
-    //     }
-    //     if (top < canvasCoords.top) {
-    //         top = canvasCoords.top - borderWidth;
-    //     }
-    //     if (top + svg.height > canvasCoords.bottom) {
-    //         top = Math.max(canvasCoords.bottom - svg.height, canvasCoords.top);
-    //     }
-    //     return {left, top}
-    // }
-    
-    // const onMouseMoveTextObjHandler = function (event: any) {
-    //     if (isMousePressed) {
-    //         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y)
-    //         setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
-    //     }
-    // }
+    const onMouseMoveShapeObjHandler = function (event: any) {
+        if (event.defaultPrevented) return;
+        if (isMousePressed) {
+            const canvasElem: HTMLTextAreaElement = canvasRef.current!;
+            const selCanvasCoords = canvasElem.getBoundingClientRect();
+            const canvasCoords = canvas!.getBoundingClientRect();
+            const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, selCanvasCoords, canvasCoords);
+            setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
+        }
+    }
 
-    // const onMouseUpTextObjHandler = function (event: any) {
-    //     if (!isMousePressed) return;
-    //     console.log('TEXT in onMouseUpTextObjHandler function');
-    //     const canvasCoords = canvas!.getBoundingClientRect();
-    //     const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
-    //     setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
-    //     dispatch(dropTextObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
-    //     setIsMousePressed(false);
-
-    // }
+    const onMouseUpShapeObjHandler = function (event: any) {
+        if (event.defaultPrevented) return;
+        if (!isMousePressed) return;
+        const canvasCoords = canvas!.getBoundingClientRect();
+        const selCanvasElem: HTMLCanvasElement = canvasRef.current!;
+        const selCanvasCoords = selCanvasElem.getBoundingClientRect();
+        const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, selCanvasCoords, canvasCoords);
+        setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
+        dispatch(dropShapeObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
+        setIsMousePressed(false);
+    }
 
     useEffect(() => { 
-        if (figureSelected) {
-            const canvasCoords = canvas!.getBoundingClientRect();
-            const svgElem: HTMLElement = svgRef.current!;
-            svgElem.style.top = (props.editor.canvas.width / 2 - 50 ).toString();
-            svgElem.style.left = (props.editor.canvas.width / 2 - 50).toString();
-            svgElem.style.width = '100px';
-            svgElem.style.height = '100px';
-        }
-        
-        // inputElem.addEventListener('mousedown', onMouseDownTextObjHandler);
-        // document.addEventListener('mousedown', onMouseDownHandler);
-        // document.addEventListener('mousemove', onMouseMoveTextObjHandler);
-        // document.addEventListener('mouseup', onMouseUpTextObjHandler);
-        //функция сработает когда произойдет следующая перерисовка
-        //return () => {
-            // inputElem.removeEventListener('mousedown', onMouseDownTextObjHandler);
-            // document.removeEventListener('mousedown', onMouseDownHandler);
-            // document.removeEventListener('mousemove', onMouseMoveTextObjHandler);
-            // document.removeEventListener('mouseup', onMouseUpTextObjHandler);
+        const canvasElem: HTMLCanvasElement = canvasRef.current!;
+        const context = canvasElem.getContext("2d")!;
+        canvasElem.setAttribute('width', props.editor.selectedObject!.w.toString());
+        canvasElem.setAttribute('height', props.editor.selectedObject!.h.toString());
+        drawFigure(props.figure, context, {...position});
+        canvasElem.addEventListener('mousedown', onMouseDownShapeObjHandler);
+        document.addEventListener('mousemove', onMouseMoveShapeObjHandler);
+        document.addEventListener('mouseup', onMouseUpShapeObjHandler);
+        return () => {
+            canvasElem.removeEventListener('mousedown', onMouseDownShapeObjHandler);
+            document.removeEventListener('mousemove', onMouseMoveShapeObjHandler);
+            document.removeEventListener('mouseup', onMouseUpShapeObjHandler);
+
+        };
     });  
 
+    useEffect(() => { 
+        const canvasCoords: DOMRect = canvas!.getBoundingClientRect();
+        setPosition({
+            x: props.editor.selectedObject!.position.x,
+            y: props.editor.selectedObject!.position.y + canvasCoords.top,
+            width: props.editor.selectedObject!.w,
+            height: props.editor.selectedObject!.h,
+        });
+    }, []);
  
     return (
         <div>
-            <div className="ShapeBar">
-                <button 
-                    className="circleBtn"
-                    title="Круг"
-                    id="circle"
-                    onClick={onShapeObjClickHandler}
-                ></button>
-                <button 
-                    className="rectangleBtn"
-                    title="Прямоугольник"
-                    id="rectangle"
-                    onClick={onShapeObjClickHandler}
-                ></button>
-                <button 
-                    className="triangleBtn"
-                    title="Треугольник"
-                    id="triangle"
-                    onClick={onShapeObjClickHandler}
-                ></button>
-            </div>
+            <div className="shapeBar">
+                <div>
+                    <label>Граница</label>
+                    <input
+                        type='color'
+                        onChange={onChangeBorderColorHandler}
+                    ></input>
+                </div>
+                <div>
+                    <label>Фон</label>
+                    <input
+                        type='color'
+                        onChange={onChangeBackgroundColorHandler}
+                    ></input>
+                </div>
+                <div>
+                    <button 
+                        className="applyBtn"
+                        onClick={onApplyShapeSelectionHandler}
+                        title="Добавить текст"
+                    >    
+                    </button>
+                    <button 
+                        className="abolishBtn"
+                        onClick={props.showShapeObjHundler}
+                        title="Отмена"></button>
+                </div>
+            </div>    
+
+            <canvas 
+                className="shapeObjcanvasSel"
+                ref={canvasRef}
+                style={{
+                    top: `${position.y}px`,
+                    left: `${position.x}px`,
+                    width: `${position.width}px`,
+                    height: `${position.height}px`
+                }}
+
+            ></canvas>
             
-            {figureSelected &&
-            <svg
-                className="shapeBorder"
-                ref={svgRef}
-            />
-            }
+            <Slider
+                pos={position}
+                changeSize={onChangeSize}
+                type={SliderType.LeftTop}
+            />  
+            <Slider
+                pos={position}
+                changeSize={onChangeSize}
+                type={SliderType.RightTop}
+            />  
+            <Slider
+                pos={position}
+                changeSize={onChangeSize}
+                type={SliderType.LeftBottom}
+            />  
+            <Slider
+                pos={position}
+                changeSize={onChangeSize}
+                type={SliderType.RightBottom}
+            />       
         </div>
     ) 
 }

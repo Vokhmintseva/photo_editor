@@ -1,13 +1,5 @@
-import React, { useState, useContext, useEffect, useRef } from 'react'
-import {Editor} from '../../model'
-import SelectFilter from '../Select/SelectFilter';
-import OpenButton from '../Buttons/OpenButton';
-import SaveButton from '../Buttons/SaveButton';
-import SnapshotButton from '../Buttons/SnapshotButton';
-import {applyFilter, cut, crop, createCanvas, deSelectArea} from '../../actions';
-import { dispatch } from '../../reducer';
+import React, { useContext, useEffect, useRef } from 'react'
 import {CanvasContext} from '../EditorComponent/EditorComponent';
-import { setIntention, intention, Intent } from '../../intentResolver';
 import SliderType from './slyderType';
 import './SelectedObject.css';
 
@@ -138,15 +130,15 @@ function Slider(props: SliderProps) {
             cursorStyle.current = 'se-resize';
             break;
         case SliderType.LeftBottom:
-            offset.current = {x: -3, y: props.pos.height + halfSizeOfSlider};
+            offset.current = {x: -halfSizeOfSlider, y: props.pos.height};
             cursorStyle.current = 'ne-resize';
             break;
         case SliderType.RightTop:
-            offset.current = {x: props.pos.width - borderWidth + halfSizeOfSlider, y: -halfSizeOfSlider};
+            offset.current = {x: props.pos.width, y: -halfSizeOfSlider};
             cursorStyle.current = 'sw-resize';
             break;   
         case SliderType.RightBottom:
-            offset.current = {x: props.pos.width - borderWidth + halfSizeOfSlider, y: props.pos.height - borderWidth + halfSizeOfSlider};
+            offset.current = {x: props.pos.width, y: props.pos.height};
             cursorStyle.current = 'nw-resize';
             break;     
         }

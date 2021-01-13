@@ -34,7 +34,7 @@ export type TextObject = EditorObject & {
 
 export type ShapeObject = EditorObject & {
 	type: Figure,
-	backgroudColor: string,
+	backgroundColor: string,
 	borderColor: string,
 }
 

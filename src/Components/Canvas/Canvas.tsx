@@ -1,9 +1,9 @@
 import React, { useRef, useEffect}  from 'react';
 import {Editor} from '../../model';
 import './Canvas.css';
-import SelectingSA from '../SelectedObject/SelectingSA';
-import SelectingTextObject from '../SelectedObject/SelectingTextObject';
-import { isTextObject } from '../../actions';
+// import SelectingSA from '../SelectedObject/SelectingSA';
+// import SelectingTextObject from '../SelectedObject/SelectingTextObject';
+// import { isTextObject } from '../../actions';
 
 interface CanvasProps {
     editor: Editor,
@@ -30,7 +30,7 @@ const Canvas = (props: CanvasProps) => {
                 className="canvas"
             />
 
-            {!props.showTextArea &&
+            {/* {!props.showTextArea &&
             <SelectingSA 
                 editor={props.editor}                
             />
@@ -40,7 +40,7 @@ const Canvas = (props: CanvasProps) => {
             <SelectingTextObject
                 editor={props.editor} 
             />
-            }
+            } */}
 
         </div>
     )

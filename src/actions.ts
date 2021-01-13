@@ -248,6 +248,20 @@ export function dropTextObj(editor: Editor, payload: {where: Point}): Editor {
 	}
 }
 
+export function dropShapeObj(editor: Editor, payload: {where: Point}): Editor {
+	if (isShapeObject(editor.selectedObject)) {
+		return {
+			...editor,
+			selectedObject: {
+				...editor.selectedObject,
+				position: payload.where,
+			}
+		}
+	} else {
+		return editor;
+	}
+}
+
 //получить индекс элемента в массиве Unit8ClampedArray, зная его координаты на канвасе
 export function getPxArrIndex(editor: Editor, p: Point): number {
 	let x: number = p.x;
@@ -435,29 +449,28 @@ export function applyFilter(editor: Editor, payload: {filterColor: string}): Edi
 }
 
 
-export function addFigure(editor: Editor, figureType: Figure): Editor {
-	const defaultShapeObj: ShapeObject = {
-		position: {x: editor.canvas.width / 2 - 50, y: editor.canvas.height / 2 - 50}, 
-		w: 100,
-		h: 100,
-		type: figureType,
-		backgroudColor: '#E382B6',
-		borderColor: '#9635B1',
-	}
-	
+export function addFigure(editor: Editor, payload: {figureType: Figure}): Editor {
 	return {
 		...editor,
-		selectedObject: defaultShapeObj,
+		selectedObject: {
+			position: {x: editor.canvas.width / 2 - 50, y: editor.canvas.height / 2 - 50}, 
+			w: 100,
+			h: 100,
+			type: Figure.circle,
+			backgroundColor: '#ffffff00',
+			borderColor: '#FF0000',
+		}
 	}
 }
 
-export function setFigureBackgroundColor(editor: Editor, newColor: string): Editor | undefined {
+
+export function setFigureBackgroundColor(editor: Editor, payload: {newColor: string}): Editor {
 	if (isShapeObject(editor.selectedObject)) {
 		return {
 			...editor,
 			selectedObject: {
 				...editor.selectedObject,
-				backgroudColor: newColor,	
+				backgroundColor: payload.newColor,	
 			}
 		}
 	} else {
@@ -465,13 +478,13 @@ export function setFigureBackgroundColor(editor: Editor, newColor: string): Edit
 	}
 }
 
-export function setFigureBorderColor(editor: Editor, newColor: string): Editor {
+export function setFigureBorderColor(editor: Editor, payload: {newColor: string}): Editor {
 	if (isShapeObject(editor.selectedObject)) {
 		return {
 			...editor,
 			selectedObject: {
 				...editor.selectedObject,
-				borderColor: newColor,	
+				borderColor: payload.newColor,	
 			}
 		}
 	} else {
@@ -479,15 +492,15 @@ export function setFigureBorderColor(editor: Editor, newColor: string): Editor {
 	}
 }
 
-export function resizeFigure (editor: Editor, newPosition: Point, newWidth: number, newHeight: number): Editor {
+export function resizeFigure (editor: Editor, payload: {newPosition: Point, newWidth: number, newHeight: number}): Editor {
 	if (isShapeObject(editor.selectedObject)) {
 		return {
 			...editor,
 			selectedObject: {
 				...editor.selectedObject,
-				position: newPosition,	
-				w: newWidth,
-				h: newHeight,
+				position: payload.newPosition,	
+				w: payload.newWidth,
+				h: payload.newHeight,
 			}
 		}
 	} else {
