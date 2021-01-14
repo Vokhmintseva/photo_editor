@@ -84,13 +84,13 @@
 }
 
 .shapeBar {
-    display: grid;
+    display: flex;
 }
 
 .shapeObjcanvasSel
 {
     position: absolute;
-    border: 2px dashed black;
+    border: 2px dashed rgb(0, 2, 133);
     display: block;
     z-index: 10; 
     cursor: move;

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Figure, Editor } from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
-import { isSelectedArea, isTextObject, addFigure, deSelectArea } from '../../actions';
+import { isSelectedArea, isTextObject, isShapeObject, addFigure, deSelectArea } from '../../actions';
 import Video from '../Video/Video';
 import SelectedArea from '../SelectedObject/SelectedArea';
 import TextObject from '../SelectedObject/TextObject';
@@ -85,7 +85,7 @@ function EditorComponent(props: EditorComponentProps) {
                     toggleShowTextArea={toggleShowTextArea}
                 />}
 
-                {showShapeObj && 
+                {(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
                 <ShapeObject
                     editor={props.editor}
                     figure={figure}

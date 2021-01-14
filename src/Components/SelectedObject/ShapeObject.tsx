@@ -1,30 +1,32 @@
 import React, { useRef, useEffect, useState, useContext }  from 'react';
-import { Editor, Figure } from '../../model';
+import { Editor, Figure, Point } from '../../model';
 import './SelectedObject.css';
 import { dispatch } from '../../reducer';
-import { setFigureBorderColor, setFigureBackgroundColor, resizeEditorObj, dropShapeObj } from '../../actions';
+import { setFigureBorderColor, setFigureBackgroundColor, resizeEditorObj, dropShapeObj, isShapeObject, addImage, deSelectArea, addFigure } from '../../actions';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
 import Slider from './Slider';
 import SliderType from './slyderType';
+
+const borderWidth = 2;
+const strokeWidth = 2;
 
 interface ShapeObjProps {
     editor: Editor,
     figure: Figure,
     showShapeObjHundler: () => void,
 }
-
 const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRect, canvasCoords: DOMRect): {left: number, top: number} {
     if (left < canvasCoords.left) {
         left = canvasCoords.left;
     }
-    if (left + textAreaCoords.width > canvasCoords.right) {
-        left = canvasCoords.right - textAreaCoords.width;
+    if (left + textAreaCoords.width > canvasCoords.right + borderWidth * 2 - strokeWidth) { 
+        left = canvasCoords.right - textAreaCoords.width + borderWidth * 2 - strokeWidth;
     }
     if (top < canvasCoords.top) {
         top = canvasCoords.top;
     }
-    if (top + textAreaCoords.height > canvasCoords.bottom) {
-        top = Math.max(canvasCoords.bottom - textAreaCoords.height, canvasCoords.top);
+    if (top + textAreaCoords.height > canvasCoords.bottom + borderWidth * 2 - strokeWidth * 2) {
+        top = Math.max(canvasCoords.bottom - textAreaCoords.height + borderWidth * 2 - strokeWidth * 2, canvasCoords.top);
     }
     return {left, top}
 }
@@ -38,41 +40,47 @@ function calculateInitPos(editor: Editor, canvasCoords: DOMRect) {
     }
 }
 
-function drawFigure(figure: Figure, context: CanvasRenderingContext2D, position: any) {
+function drawFigure(figure: Figure,
+                    context: CanvasRenderingContext2D,
+                    position: any,
+                    borderColor: string,
+                    backgroundColor: string,
+                    start: Point
+                ){
+    context.beginPath();
+    context.lineWidth = strokeWidth;
+    context.fillStyle = backgroundColor;
+    context.strokeStyle = borderColor;
     switch (figure.toString()) {
-    
     case 'circle':
-        context.beginPath();
-        context.ellipse(position.width / 2, position.height / 2, position.width / 2, position.height / 2 , 0, 0, Math.PI*2);
-        context.stroke();
+        context.ellipse(position.width / 2 + start.x, position.height / 2 + start.y, position.width / 2, position.height / 2 , 0, 0, Math.PI*2);
         break;
     case 'triangle':
-        context.beginPath();
-        context.moveTo(0, position.height);
-        context.lineTo(position.width, position.height);
-        context.lineTo(position.width / 2, 0);
-        context.closePath();
-        context.stroke();
+
+        context.moveTo(start.x, start.y + position.height);
+        context.lineTo(start.x + position.width, start.y + position.height);
+        context.lineTo(start.x + position.width / 2, start.y);
         break;  
     case 'rectangle':
-        context.beginPath();
-        context.moveTo(0, position.height);
-        context.lineTo(position.width, position.height);
-        context.lineTo(position.width, 0);
-        context.lineTo(0, 0);
-        context.closePath();
-        context.stroke();
+        context.moveTo(start.x, start.y + position.height);
+        context.lineTo(start.x + position.width, start.y + position.height);
+        context.lineTo(start.x + position.width, start.y);
+        context.lineTo(start.x, start.y);
         break;
     }
+    context.closePath();
+    context.stroke();
+    context.fill();
 }
 
 const ShapeObject = (props: ShapeObjProps) => {
+    console.log('drawing shape obj');
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     const canvasCoords = canvas!.getBoundingClientRect();
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [offset, setOffset] = useState({x: 0, y: 0});
     const [position, setPosition] = useState(() => calculateInitPos(props.editor, canvasCoords));
-    
+        
     let canvasRef = useRef(null);
   
     function onChangeSize(x: number, y: number, width: number, height: number) {
@@ -82,7 +90,18 @@ const ShapeObject = (props: ShapeObjProps) => {
     }
 
     function onApplyShapeSelectionHandler(event: any) {
-
+        const context = canvas!.getContext("2d")!;
+        const canvasCoords = canvas!.getBoundingClientRect();
+        const canvasElem: HTMLCanvasElement = canvasRef.current!;
+        canvasElem.setAttribute('width', 100 + 'px');
+        canvasElem.setAttribute('height', '100px');
+        if (isShapeObject(props.editor.selectedObject)) {
+            drawFigure(props.figure, context, position, props.editor.selectedObject.borderColor, props.editor.selectedObject.backgroundColor, {x: position.x + strokeWidth / 2, y: position.y - canvasCoords.top + strokeWidth});
+            let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
+            dispatch(addImage, {newImage: newImgData});
+            dispatch(deSelectArea, {});
+            //props.showShapeObjHundler();
+        }
     }
 
     function onChangeBorderColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
@@ -94,6 +113,9 @@ const ShapeObject = (props: ShapeObjProps) => {
     }
  
     function onMouseDownShapeObjHandler(event: any) {
+        const canvasElem: HTMLTextAreaElement = canvasRef.current!;
+        const selCanvasCoords = canvasElem.getBoundingClientRect();
+        console.log(selCanvasCoords);
         if (event.defaultPrevented) return;
         console.log('SHAPE in onMouseDownTextObjHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
@@ -128,7 +150,9 @@ const ShapeObject = (props: ShapeObjProps) => {
         const context = canvasElem.getContext("2d")!;
         canvasElem.setAttribute('width', props.editor.selectedObject!.w.toString());
         canvasElem.setAttribute('height', props.editor.selectedObject!.h.toString());
-        drawFigure(props.figure, context, {...position});
+        if (isShapeObject(props.editor.selectedObject)) {
+            drawFigure(props.figure, context, {...position}, props.editor.selectedObject.borderColor, props.editor.selectedObject.backgroundColor, {x: 0, y: 0});
+        }
         canvasElem.addEventListener('mousedown', onMouseDownShapeObjHandler);
         document.addEventListener('mousemove', onMouseMoveShapeObjHandler);
         document.addEventListener('mouseup', onMouseUpShapeObjHandler);
@@ -136,7 +160,6 @@ const ShapeObject = (props: ShapeObjProps) => {
             canvasElem.removeEventListener('mousedown', onMouseDownShapeObjHandler);
             document.removeEventListener('mousemove', onMouseMoveShapeObjHandler);
             document.removeEventListener('mouseup', onMouseUpShapeObjHandler);
-
         };
     });  
 
@@ -153,6 +176,24 @@ const ShapeObject = (props: ShapeObjProps) => {
     return (
         <div>
             <div className="shapeBar">
+                <button 
+                    className="circleBtn"
+                    title="Круг"
+                    id="circle"
+                    onClick={props.showShapeObjHundler}
+                ></button>
+                <button 
+                    className="rectangleBtn"
+                    title="Прямоугольник"
+                    id="rectangle"
+                    onClick={props.showShapeObjHundler}
+                ></button>
+                <button 
+                    className="triangleBtn"
+                    title="Треугольник"
+                    id="triangle"
+                    onClick={props.showShapeObjHundler}
+                ></button>
                 <div>
                     <label>Граница</label>
                     <input
