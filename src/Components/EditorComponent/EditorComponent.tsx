@@ -20,16 +20,22 @@ interface EditorComponentProps {
 export const CanvasContext = React.createContext(null);
 
 function EditorComponent(props: EditorComponentProps) {
+    console.log('rendering Editor Component');
     const [shouldShowCamera, setShouldShowCamera] = useState(false);
     const [showTextArea, setShowTextArea] = useState(false);
     const [showShapeObj, setShowShapeObj] = useState(false);
     const [canvas, setCanvas] = useState(null);
     const getCanvas = (ref: any) => setCanvas(ref.current!);
     const [figure, setFigure] = useState(Figure.circle);
+    const [resetFigure, setResetFigure] = useState(false);
     //let figureSelectedRef = useRef(false);
 
     const toggleShowCamera = () => {
         setShouldShowCamera(!shouldShowCamera);
+    }
+
+    const onSetResetFigureHandler = () => {
+        setResetFigure(false);
     }
 
     const showShapeObjHundler = () => {
@@ -50,16 +56,11 @@ function EditorComponent(props: EditorComponentProps) {
 
     const onShapeObjClickHandler = (event: any) => {
         const newFigure: Figure = event.target.id;
-        if (newFigure == figure && showShapeObj) {
-            //figureSelectedRef.current = false;
-            setShowShapeObj(false);
-            dispatch(deSelectArea, {});
-        } else {
-            //figureSelectedRef.current = true;
-            setFigure(newFigure);
-            setShowShapeObj(true);
-            dispatch(addFigure, {figureType: newFigure});
-        }
+        setResetFigure(true);
+        setShowShapeObj(true);
+        //dispatch(deSelectArea, {});
+        setFigure(newFigure);
+        dispatch(addFigure, {figureType: newFigure});
         setShowTextArea(false);
     }
     
@@ -89,7 +90,9 @@ function EditorComponent(props: EditorComponentProps) {
                 <ShapeObject
                     editor={props.editor}
                     figure={figure}
-                    showShapeObjHundler={showShapeObjHundler}
+                    onShapeObjClickHandler={onShapeObjClickHandler}
+                    resetFigure={resetFigure}
+                    onSetResetFigureHandler={onSetResetFigureHandler}
                 />}
                 
                 {!shouldShowCamera 

@@ -13,7 +13,9 @@ const strokeWidth = 2;
 interface ShapeObjProps {
     editor: Editor,
     figure: Figure,
-    showShapeObjHundler: () => void,
+    onShapeObjClickHandler: (event: any) => void,
+    resetFigure: Boolean,
+    onSetResetFigureHandler: () => void,
 }
 const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRect, canvasCoords: DOMRect): {left: number, top: number} {
     if (left < canvasCoords.left) {
@@ -80,6 +82,11 @@ const ShapeObject = (props: ShapeObjProps) => {
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [offset, setOffset] = useState({x: 0, y: 0});
     const [position, setPosition] = useState(() => calculateInitPos(props.editor, canvasCoords));
+    const [resetSliders, setResetSliders] = useState(false);
+
+    const onResetSlidersHandler = () => {
+        setResetSliders(false);
+    }
         
     let canvasRef = useRef(null);
   
@@ -89,12 +96,24 @@ const ShapeObject = (props: ShapeObjProps) => {
         dispatch(resizeEditorObj, {newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
+    function resetFigureCoords() {
+        const canvasCoords = canvas!.getBoundingClientRect();
+        setResetSliders(true);
+        setPosition({
+            x: props.editor.canvas.width / 2 - 50,
+            y: props.editor.canvas.height / 2 - 50 + canvasCoords.top,
+            width: 100,
+            height: 100});
+    }
+
+    function onFigureClickHundler(event: any) {
+        props.onShapeObjClickHandler(event);
+    }
+        
     function onApplyShapeSelectionHandler(event: any) {
         const context = canvas!.getContext("2d")!;
         const canvasCoords = canvas!.getBoundingClientRect();
-        const canvasElem: HTMLCanvasElement = canvasRef.current!;
-        canvasElem.setAttribute('width', 100 + 'px');
-        canvasElem.setAttribute('height', '100px');
+
         if (isShapeObject(props.editor.selectedObject)) {
             drawFigure(props.figure, context, position, props.editor.selectedObject.borderColor, props.editor.selectedObject.backgroundColor, {x: position.x + strokeWidth / 2, y: position.y - canvasCoords.top + strokeWidth});
             let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
@@ -114,8 +133,7 @@ const ShapeObject = (props: ShapeObjProps) => {
  
     function onMouseDownShapeObjHandler(event: any) {
         const canvasElem: HTMLTextAreaElement = canvasRef.current!;
-        const selCanvasCoords = canvasElem.getBoundingClientRect();
-        console.log(selCanvasCoords);
+        //const selCanvasCoords = canvasElem.getBoundingClientRect();
         if (event.defaultPrevented) return;
         console.log('SHAPE in onMouseDownTextObjHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
@@ -146,6 +164,10 @@ const ShapeObject = (props: ShapeObjProps) => {
     }
 
     useEffect(() => { 
+        if (props.resetFigure) {
+            resetFigureCoords();
+            props.onSetResetFigureHandler();
+        }    
         const canvasElem: HTMLCanvasElement = canvasRef.current!;
         const context = canvasElem.getContext("2d")!;
         canvasElem.setAttribute('width', props.editor.selectedObject!.w.toString());
@@ -176,24 +198,6 @@ const ShapeObject = (props: ShapeObjProps) => {
     return (
         <div>
             <div className="shapeBar">
-                <button 
-                    className="circleBtn"
-                    title="Круг"
-                    id="circle"
-                    onClick={props.showShapeObjHundler}
-                ></button>
-                <button 
-                    className="rectangleBtn"
-                    title="Прямоугольник"
-                    id="rectangle"
-                    onClick={props.showShapeObjHundler}
-                ></button>
-                <button 
-                    className="triangleBtn"
-                    title="Треугольник"
-                    id="triangle"
-                    onClick={props.showShapeObjHundler}
-                ></button>
                 <div>
                     <label>Граница</label>
                     <input
@@ -217,7 +221,7 @@ const ShapeObject = (props: ShapeObjProps) => {
                     </button>
                     <button 
                         className="abolishBtn"
-                        onClick={props.showShapeObjHundler}
+                        onClick={props.onShapeObjClickHandler}
                         title="Отмена"></button>
                 </div>
             </div>    
@@ -238,22 +242,30 @@ const ShapeObject = (props: ShapeObjProps) => {
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftTop}
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightTop}
-            />  
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
+            />
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftBottom}
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightBottom}
-            />       
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
+            /> 
         </div>
     ) 
 }

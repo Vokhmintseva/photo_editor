@@ -179,12 +179,10 @@ export function addText(editor: Editor, newText: TextObject): Editor {
 
 /**User defined Type Guards */
 export function isTextObject(editorObj: any): editorObj is TextObject {
-	console.log('editorObj.type', editorObj.type);
 	return (editorObj.type == 'text')
 }
 
 export function isShapeObject(editorObj: any): editorObj is ShapeObject {
-	console.log('editorObj.type', editorObj.type);
 	return (editorObj.type == Figure.triangle || editorObj.type == Figure.rectangle || editorObj.type == Figure.circle)
 } 
 

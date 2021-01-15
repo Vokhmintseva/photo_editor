@@ -9,7 +9,9 @@ const borderWidth: number = 2;
 interface SliderProps {
     pos: {x: number, y: number, width: number, height: number},
     changeSize: (x: number, y: number, width: number, height: number) => void,
-    type: SliderType
+    type: SliderType,
+    onResetSlidersHandler: () => void,
+    resetSliders: Boolean,
 }
 
 const adjustCoords = function (x: number, y: number, canvasCoords: DOMRect): {x: number, y: number} {
@@ -90,13 +92,11 @@ function Slider(props: SliderProps) {
     let sliderRef = useRef(null);
     let offset = useRef({x: 0, y: 0});
     let cursorStyle = useRef('');
-    //let initPoints = useRef({leftTop: {x: 0, y: 0}, leftBottom: {x: 0, y: 0}, rightTop: {x: 0, y: 0}, rightBottom: {x: 0, y: 0}});
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
 
     let isMousePressed = useRef(false);
 
     function onMouseDownSliderHandler(event: any) {
-        console.log('SLIDER on mouse down');
         isMousePressed.current = true;
         event.preventDefault();
     }
@@ -123,7 +123,6 @@ function Slider(props: SliderProps) {
     }
 
     useEffect(() => { 
-        //const canvasCoords = canvas!.getBoundingClientRect();
         switch (props.type) {
         case SliderType.LeftTop:
             offset.current = {x: -halfSizeOfSlider, y: -halfSizeOfSlider};
@@ -142,6 +141,24 @@ function Slider(props: SliderProps) {
             cursorStyle.current = 'nw-resize';
             break;     
         }
+        if (props.resetSliders) {
+            console.log('props.reset sliders true');
+            switch (props.type) {
+                case SliderType.LeftTop:
+                    offset.current = {x: -halfSizeOfSlider, y: -halfSizeOfSlider};
+                    break;
+                case SliderType.LeftBottom:
+                    offset.current = {x: -halfSizeOfSlider, y: 100};
+                    break;
+                case SliderType.RightTop:
+                    offset.current = {x: 100, y: -halfSizeOfSlider};
+                    break;   
+                case SliderType.RightBottom:
+                    offset.current = {x: 100, y: 100};
+                    break;     
+            }
+            props.onResetSlidersHandler();
+        }   
         const sliderElem: HTMLCanvasElement = sliderRef.current!;
         sliderElem.addEventListener('mousedown', onMouseDownSliderHandler);
         document.addEventListener('mousemove', onMouseMoveSliderHandler);
@@ -151,7 +168,6 @@ function Slider(props: SliderProps) {
             sliderElem.removeEventListener('mousedown', onMouseDownSliderHandler);
             document.removeEventListener('mousemove', onMouseMoveSliderHandler);
             document.removeEventListener('mouseup', onMouseUpSliderHandler);
-
         };
     });  
    

@@ -116,6 +116,12 @@ const TextObject = (props: TextObjProps) => {
     const [fontFamily, setFontFamily] = useState(() => getInitFontFamily(props.editor));
     const [fontSize, setFontSize] = useState(() => getInitFontSize(props.editor));
     const [backgroundColor, setBackgroundColor] = useState(() => getInitbackgroundColor(props.editor));
+    const [resetSliders, setResetSliders] = useState(false);
+
+    const onResetSlidersHandler = () => {
+        setResetSliders(false);
+    }
+        
 
     let textAreaRef = useRef(null);
     
@@ -308,21 +314,29 @@ const TextObject = (props: TextObjProps) => {
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftTop}
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightTop}
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftBottom}
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightBottom}
+                onResetSlidersHandler={onResetSlidersHandler}
+                resetSliders={resetSliders}
             />       
         </div>
     ) 
