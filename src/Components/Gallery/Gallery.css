@@ -1,18 +1,47 @@
-.searchPhotosButton {
-    /* z-index: 80 !important; */
-    /* position: inherit; */
-
+.pickImgContainer {
+    position: absolute;
+    padding: 10px;
+    border-radius: 5px;
+    border: solid 1px black;
+    width: 590px;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    background-color: rgb(173, 184, 185);
+    z-index: 60;
 }
 
-.tinyPicsContainer {
+.pickImgContainer__previewsContainer {
     left: 50px;
     top: 50px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-column-gap: 20px;
     grid-row-gap: 20px;
+    padding: 15px 0 15px 0; 
 }
 
-.pickPhotosContainer {
+.pickImgContainer__closeButton {
     position: absolute;
+    right: 5px;
+    top: 5px;
+    background: url('../../images/close.png') no-repeat; 
+    background-color: white;
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
+
+.pickImgContainer__morePreviewsButton {
+    margin: 0 auto;
+    display: block;
+    position: relative;    
+}
+
+.pickImgContainer__preview:hover {
+    border: 3px solid blue;
+}
+
+.pickImgContainer__searchButton {
+    margin-left: 10px;
 }

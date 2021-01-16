@@ -28,8 +28,6 @@ function OpenButton(openButtonProps: OpenButtonProps) {
         //}
         
         
-        
-        
         image.onload = () => {
             let imageWidth = image.width;
             let imageHeight = image.height;

@@ -114,13 +114,18 @@ function EditorComponent(props: EditorComponentProps) {
                 />
                 }       
 
-                {showTextArea && !showGallery &&
+                {showTextArea && !showGallery && !showShapeObj &&
                 <SelectingTextObject
                     editor={props.editor} 
                 />
                 }
                 {showGallery &&
-                    <Gallery />
+                    <div>
+                        <Gallery 
+                            onOpenGalleryHandler={onOpenGalleryHandler}
+                        />
+                        <canvas />
+                    </div>
                 }
             </div>
         </CanvasContext.Provider>

@@ -3,74 +3,73 @@ import {Editor} from '../../model';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { createClient, PhotosWithTotalResults, ErrorResponse, Photos } from 'pexels';
 import './Gallery.css';
+import PreviewImg from './PreviewImg';
 
-const client = createClient('563492ad6f9170000100000123e4f93c5b6d44af8902722cfab6ce27');
-//const query = 'Nature';
+const client = createClient('563492ad6f91700001000001f32c0c635f2c46e4badcbd278b68e104');
 
 interface GalleryProps {
     //editor: Editor,
     //reference: any
+    onOpenGalleryHandler: () => void,
 }
 
 function Gallery(props: GalleryProps) {
 
-    let canvas: HTMLCanvasElement | null = useContext(CanvasContext);      
+
     enum Format {jpeg, png};
     let f = Format.jpeg;
     const [query, setQuery] = useState('');
-    
-    const [arr, fillArr] = useState([]);
+    const [page, setPage] = useState(1);
+    const [previewsArr, fillPreviewsArr] = useState([]);
 
-    let tinyPics: any;
+    let prewievsArray: any;
     function getPhotos(photos: PhotosWithTotalResults | ErrorResponse) {
         if("error" in photos) {
         } else {
-            tinyPics = photos.photos.map((photo, index) => {
+            prewievsArray = photos.photos.map((photo, index) => {
                 return (
-                    <div className="card" key={index}>
-                        <img src={photo.src.tiny} />
-                    </div>
+                    <PreviewImg
+                        key={index}
+                        photo={photo}
+                        mediumSrc={photo.src.medium}
+                    />
                 )
             })
         }
-        
-            // while(tinyPics.length > 0) {
-            //     tinyPics.pop();
-            // }
-        
-        fillArr(tinyPics);
+        fillPreviewsArr(prewievsArray);
     }
     
+    const showMorePreiews = () => {
+        setPage(page + 1);
+    }
 
-    const openGallery = () => {
-        client.photos.search({ query, per_page: 4}).then(photos => {
+    const showPreviews = () => {
+        if (query == '') return;
+        client.photos.search({ query, per_page: 4, page: page}).then(photos => {
             getPhotos(photos);
         });
     }
 
     useEffect(() => {
-        console.log('query is', query);
-    })
+        showPreviews();
+    }, [page])
 
     return (
-        <div className="pickPhotosContainer">
-            <label>Что будем искать?</label>
+        <div className="pickImgContainer">
             <input
-                onChange={e => setQuery(e.target.value)}
+                placeholder="Поиск"
+                onChange={e => {setQuery(e.target.value); setPage(1);}}
             ></input>
-            <button
-                className="searchPhotosButton"    
-                onClick={openGallery}
-            >Найти
-            </button>
-        
-            <div className="tinyPicsContainer">
-                {arr}
+            <button onClick={showPreviews} className="pickImgContainer__searchButton">Найти</button>
+            <div onClick={props.onOpenGalleryHandler} className="pickImgContainer__closeButton" />
+            <div className="pickImgContainer__previewsContainer">
+                {previewsArr}
             </div>
-        
+            <button
+                onClick={showMorePreiews}
+                className="pickImgContainer__morePreviewsButton"
+            >Еще</button>
         </div>
-        
-        
     );
 }
 
