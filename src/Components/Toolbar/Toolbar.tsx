@@ -5,7 +5,7 @@ import SelectFilter from '../Select/SelectFilter';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import SnapshotButton from '../Buttons/SnapshotButton';
-import {applyFilter, cut, crop, createCanvas, deSelectArea} from '../../actions';
+import {applyFilter, cut, crop, createCanvas, deSelectArea, isSelectedArea} from '../../actions';
 import { dispatch } from '../../reducer';
 
 interface ToolbarProps {
@@ -13,7 +13,8 @@ interface ToolbarProps {
     toggleShowCamera: () => void,
     toggleShowTextArea: () => void,
     showTextArea: Boolean,
-    onShapeObjClickHandler: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
+    onShowFigureClickHandler: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
+    onOpenGalleryHandler: () => void,
 }
 
 function Toolbar(props: ToolbarProps) {
@@ -66,42 +67,41 @@ function Toolbar(props: ToolbarProps) {
     return (
         <div className='toolbar'>
             <OpenButton editor={props.editor} />
+            <button onClick={props.onOpenGalleryHandler}>Галерея</button>
             <SaveButton editor={props.editor} />
             <button onClick={onClearAllHandler}>New Canvas</button>
             {select}
             <button onClick={filterButtonHandler}>Применить фильтр</button>
             <SnapshotButton editor={props.editor} toggleShowCamera={props.toggleShowCamera}/>
+            {props.editor.selectedObject && isSelectedArea(props.editor.selectedObject) &&
+            <div>
             <button onClick={onClearSelectionHandler}>Cut</button>
             <button onClick={onSelectionCropHandler}>Crop</button>
+            </div>
+            }
             <button 
                 ref={showTextBtnRef}
                 title="Текст"
                 onClick={props.toggleShowTextArea}
             >A</button>
-            {/* <button 
-                className=""
-                title="Фигура"
-                onClick={props.onShapeObjClickHandler}
-            >Фигура</button> */}
             <div className="ShapeBar">
-                
                 <button 
                     className="circleBtn"
                     title="Круг"
                     id="circle"
-                    onClick={props.onShapeObjClickHandler}
+                    onClick={props.onShowFigureClickHandler}
                 ></button>
                 <button 
                     className="rectangleBtn"
                     title="Прямоугольник"
                     id="rectangle"
-                    onClick={props.onShapeObjClickHandler}
+                    onClick={props.onShowFigureClickHandler}
                 ></button>
                 <button 
                     className="triangleBtn"
                     title="Треугольник"
                     id="triangle"
-                    onClick={props.onShapeObjClickHandler}
+                    onClick={props.onShowFigureClickHandler}
                 ></button>
 
             </div>

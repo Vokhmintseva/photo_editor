@@ -9,9 +9,10 @@ import ShapeObject from '../SelectedObject/ShapeObject';
 import Canvas from '../Canvas/Canvas';
 import './EditorComponent.css';
 import { Intent, setIntention } from '../../intentResolver';
-import { dispatch } from '../../reducer';
+import { dispatch, editor } from '../../reducer';
 import SelectingSA from '../SelectedObject/SelectingSA';
 import SelectingTextObject from '../SelectedObject/SelectingTextObject';
+import Gallery from '../Gallery/Gallery';
 
 interface EditorComponentProps {
     editor: Editor
@@ -20,30 +21,30 @@ interface EditorComponentProps {
 export const CanvasContext = React.createContext(null);
 
 function EditorComponent(props: EditorComponentProps) {
-    console.log('rendering Editor Component');
     const [shouldShowCamera, setShouldShowCamera] = useState(false);
     const [showTextArea, setShowTextArea] = useState(false);
     const [showShapeObj, setShowShapeObj] = useState(false);
     const [canvas, setCanvas] = useState(null);
     const getCanvas = (ref: any) => setCanvas(ref.current!);
     const [figure, setFigure] = useState(Figure.circle);
-    const [resetFigure, setResetFigure] = useState(false);
-    //let figureSelectedRef = useRef(false);
+    const [shouldResetFigure, setShouldResetFigure] = useState(false);
+    const [showGallery, setIsOpenGallery] = useState(false);
 
     const toggleShowCamera = () => {
         setShouldShowCamera(!shouldShowCamera);
     }
 
-    const onSetResetFigureHandler = () => {
-        setResetFigure(false);
+    function onShouldResetFigureHandler(should: boolean) {
+        setShouldResetFigure(should);
     }
 
-    const showShapeObjHundler = () => {
-        if (showShapeObj) {
-            dispatch(deSelectArea, {});
-        }
-        setShowShapeObj(!showShapeObj);
-        setShowTextArea(false);
+    const onOpenGalleryHandler = () => {
+        setIsOpenGallery(!showGallery);
+    }
+
+    const onCancelFigureClickHandler = () => {
+        dispatch(deSelectArea, {});
+        setShowShapeObj(false);
     }
 
     const toggleShowTextArea = () => {
@@ -54,11 +55,10 @@ function EditorComponent(props: EditorComponentProps) {
         setShowShapeObj(false);
     }
 
-    const onShapeObjClickHandler = (event: any) => {
+    const onShowFigureClickHandler = (event: any) => {
         const newFigure: Figure = event.target.id;
-        setResetFigure(true);
+        setShouldResetFigure(true);
         setShowShapeObj(true);
-        //dispatch(deSelectArea, {});
         setFigure(newFigure);
         dispatch(addFigure, {figureType: newFigure});
         setShowTextArea(false);
@@ -72,7 +72,8 @@ function EditorComponent(props: EditorComponentProps) {
                     toggleShowCamera={toggleShowCamera}
                     toggleShowTextArea={toggleShowTextArea}
                     showTextArea={showTextArea}
-                    onShapeObjClickHandler={onShapeObjClickHandler}
+                    onShowFigureClickHandler={onShowFigureClickHandler}
+                    onOpenGalleryHandler={onOpenGalleryHandler}
                 />
 
                 {(props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) &&
@@ -90,12 +91,14 @@ function EditorComponent(props: EditorComponentProps) {
                 <ShapeObject
                     editor={props.editor}
                     figure={figure}
-                    onShapeObjClickHandler={onShapeObjClickHandler}
-                    resetFigure={resetFigure}
-                    onSetResetFigureHandler={onSetResetFigureHandler}
+                    onShowFigureClickHandler={onShowFigureClickHandler}
+                    shouldResetFigure={shouldResetFigure}
+                    onShouldResetFigureHandler={onShouldResetFigureHandler}
+                    onCancelFigureClickHandler={onCancelFigureClickHandler}
                 />}
+               
                 
-                {!shouldShowCamera 
+                 {!shouldShowCamera
                 ? <Canvas 
                     setCanv={getCanvas}
                     editor={props.editor}
@@ -105,16 +108,19 @@ function EditorComponent(props: EditorComponentProps) {
                     toggleShowCamera={toggleShowCamera}
                 />}
 
-                {!showTextArea && !showShapeObj &&
+                {!showTextArea && !showShapeObj && !showGallery &&
                 <SelectingSA 
                     editor={props.editor}                
                 />
                 }       
 
-                {showTextArea && 
+                {showTextArea && !showGallery &&
                 <SelectingTextObject
                     editor={props.editor} 
                 />
+                }
+                {showGallery &&
+                    <Gallery />
                 }
             </div>
         </CanvasContext.Provider>

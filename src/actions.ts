@@ -361,18 +361,14 @@ export function makeSelectionBeWhite(editor: Editor, arr: Array<number>): ImageD
 
 //перекрасить в белый цвет все, кроме выделенной области
 export function whitenAllExceptSelection(editor: Editor, arr: Array<number>): ImageData {
-	let pxArray: Uint8ClampedArray = editor.canvas.data.slice();
-	let pixelArrayLength: number = editor.selectedObject?.w! * editor.selectedObject?.h! * 4;
-	let bufferArray = new Uint8Array(pixelArrayLength);
-    for (let i: number = 0; i < arr.length; i ++) {
-		bufferArray[i] = pxArray[arr[i]];
+	let blankImgDataPxArray: Uint8ClampedArray = cleanCanvas(editor.canvas.width, editor.canvas.height).data;
+	if (isSelectedArea(editor.selectedObject)) {
+		let canvasPxArray = editor.selectedObject.pixelArray.data;	
+		for (let i: number = 0; i < arr.length; i++) {
+			blankImgDataPxArray[arr[i]] = canvasPxArray[i];
+		}
 	}
-	let blankImgData: ImageData = cleanCanvas();
-	pxArray = blankImgData.data;
-	for (let i: number = 0; i < arr.length; i++) {
-		pxArray[arr[i]] = bufferArray[i]
-	}
-	return new ImageData(pxArray, editor.canvas.width, editor.canvas.height);
+	return new ImageData(blankImgDataPxArray, editor.canvas.width, editor.canvas.height);
 }
 
 //вырезать выделенную область

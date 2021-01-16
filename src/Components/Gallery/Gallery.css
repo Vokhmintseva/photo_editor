@@ -1,0 +1,18 @@
+.searchPhotosButton {
+    /* z-index: 80 !important; */
+    /* position: inherit; */
+
+}
+
+.tinyPicsContainer {
+    left: 50px;
+    top: 50px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: 20px;
+    grid-row-gap: 20px;
+}
+
+.pickPhotosContainer {
+    position: absolute;
+}

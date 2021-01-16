@@ -13,9 +13,10 @@ const strokeWidth = 2;
 interface ShapeObjProps {
     editor: Editor,
     figure: Figure,
-    onShapeObjClickHandler: (event: any) => void,
-    resetFigure: Boolean,
-    onSetResetFigureHandler: () => void,
+    onShowFigureClickHandler: (event: any) => void,
+    shouldResetFigure: boolean,
+    onShouldResetFigureHandler: (should: boolean) => void,
+    onCancelFigureClickHandler: () => void,
 }
 const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRect, canvasCoords: DOMRect): {left: number, top: number} {
     if (left < canvasCoords.left) {
@@ -76,17 +77,11 @@ function drawFigure(figure: Figure,
 }
 
 const ShapeObject = (props: ShapeObjProps) => {
-    console.log('drawing shape obj');
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     const canvasCoords = canvas!.getBoundingClientRect();
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [offset, setOffset] = useState({x: 0, y: 0});
     const [position, setPosition] = useState(() => calculateInitPos(props.editor, canvasCoords));
-    const [resetSliders, setResetSliders] = useState(false);
-
-    const onResetSlidersHandler = () => {
-        setResetSliders(false);
-    }
         
     let canvasRef = useRef(null);
   
@@ -98,7 +93,6 @@ const ShapeObject = (props: ShapeObjProps) => {
 
     function resetFigureCoords() {
         const canvasCoords = canvas!.getBoundingClientRect();
-        setResetSliders(true);
         setPosition({
             x: props.editor.canvas.width / 2 - 50,
             y: props.editor.canvas.height / 2 - 50 + canvasCoords.top,
@@ -106,10 +100,6 @@ const ShapeObject = (props: ShapeObjProps) => {
             height: 100});
     }
 
-    function onFigureClickHundler(event: any) {
-        props.onShapeObjClickHandler(event);
-    }
-        
     function onApplyShapeSelectionHandler(event: any) {
         const context = canvas!.getContext("2d")!;
         const canvasCoords = canvas!.getBoundingClientRect();
@@ -119,7 +109,7 @@ const ShapeObject = (props: ShapeObjProps) => {
             let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
             dispatch(addImage, {newImage: newImgData});
             dispatch(deSelectArea, {});
-            //props.showShapeObjHundler();
+            props.onCancelFigureClickHandler();
         }
     }
 
@@ -132,10 +122,8 @@ const ShapeObject = (props: ShapeObjProps) => {
     }
  
     function onMouseDownShapeObjHandler(event: any) {
-        const canvasElem: HTMLTextAreaElement = canvasRef.current!;
-        //const selCanvasCoords = canvasElem.getBoundingClientRect();
+        //const canvasElem: HTMLTextAreaElement = canvasRef.current!;
         if (event.defaultPrevented) return;
-        console.log('SHAPE in onMouseDownTextObjHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
     }
@@ -164,9 +152,9 @@ const ShapeObject = (props: ShapeObjProps) => {
     }
 
     useEffect(() => { 
-        if (props.resetFigure) {
+        if (props.shouldResetFigure) {
             resetFigureCoords();
-            props.onSetResetFigureHandler();
+            props.onShouldResetFigureHandler(false);
         }    
         const canvasElem: HTMLCanvasElement = canvasRef.current!;
         const context = canvasElem.getContext("2d")!;
@@ -221,7 +209,7 @@ const ShapeObject = (props: ShapeObjProps) => {
                     </button>
                     <button 
                         className="abolishBtn"
-                        onClick={props.onShapeObjClickHandler}
+                        onClick={props.onCancelFigureClickHandler}
                         title="Отмена"></button>
                 </div>
             </div>    
@@ -242,29 +230,25 @@ const ShapeObject = (props: ShapeObjProps) => {
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftTop}
-                onResetSlidersHandler={onResetSlidersHandler}
-                resetSliders={resetSliders}
+                resetFigure={props.shouldResetFigure}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightTop}
-                onResetSlidersHandler={onResetSlidersHandler}
-                resetSliders={resetSliders}
+                resetFigure={props.shouldResetFigure}
             />
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftBottom}
-                onResetSlidersHandler={onResetSlidersHandler}
-                resetSliders={resetSliders}
+                resetFigure={props.shouldResetFigure}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightBottom}
-                onResetSlidersHandler={onResetSlidersHandler}
-                resetSliders={resetSliders}
+                resetFigure={props.shouldResetFigure}
             /> 
         </div>
     ) 

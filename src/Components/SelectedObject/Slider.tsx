@@ -10,8 +10,9 @@ interface SliderProps {
     pos: {x: number, y: number, width: number, height: number},
     changeSize: (x: number, y: number, width: number, height: number) => void,
     type: SliderType,
-    onResetSlidersHandler: () => void,
-    resetSliders: Boolean,
+    resetFigure: Boolean,
+    // onResetSlidersHandler: () => void,
+    // resetSliders: Boolean,
 }
 
 const adjustCoords = function (x: number, y: number, canvasCoords: DOMRect): {x: number, y: number} {
@@ -141,8 +142,7 @@ function Slider(props: SliderProps) {
             cursorStyle.current = 'nw-resize';
             break;     
         }
-        if (props.resetSliders) {
-            console.log('props.reset sliders true');
+        if (props.resetFigure) {
             switch (props.type) {
                 case SliderType.LeftTop:
                     offset.current = {x: -halfSizeOfSlider, y: -halfSizeOfSlider};
@@ -157,7 +157,7 @@ function Slider(props: SliderProps) {
                     offset.current = {x: 100, y: 100};
                     break;     
             }
-            props.onResetSlidersHandler();
+            //props.onResetSlidersHandler();
         }   
         const sliderElem: HTMLCanvasElement = sliderRef.current!;
         sliderElem.addEventListener('mousedown', onMouseDownSliderHandler);
