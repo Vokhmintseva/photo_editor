@@ -1,6 +1,7 @@
 //это функции, которые выдают определенный action
 import { SELECT_AREA, WHITEN_AREA, JOIN_SA_WITH_CANVAS, DROP_SA, DESELECT_AREA, ADD_FIGURE, APPLY_FILTER, CUT,
-CROP, CREATE_CANVAS, ADD_IMAGE, RESIZE_EDITOR_OBJ, DROP_TEXT_OBJ, SELECT_TEXT_AREA } from './actionTypes';
+CROP, CREATE_CANVAS, ADD_IMAGE, RESIZE_EDITOR_OBJ, DROP_TEXT_OBJ, SELECT_TEXT_AREA, DROP_SHAPE_OBJ, SET_FIGURE_BACKGROUND_COLOR,
+SET_FIGURE_BORDER_COLOR } from './actionTypes';
 import { Point, Figure } from '../../model';
 
 
@@ -97,6 +98,27 @@ export function dropTextObj(payload: {where: Point}) {
 export function selectTextArea(payload: {startPoint: Point, endPoint: Point}) {
     return {
         type: SELECT_TEXT_AREA,
+        payload: payload
+    }
+}    
+
+export function dropShapeObj(payload: {where: Point}) {
+    return {
+        type: DROP_SHAPE_OBJ,
+        payload: payload
+    }
+}    
+
+export function setFigureBorderColor(payload: {newColor: string}) {
+    return {
+        type: SET_FIGURE_BORDER_COLOR,
+        payload: payload
+    }
+}    
+
+export function setFigureBackgroundColor(payload: {newColor: string}) {
+    return {
+        type: SET_FIGURE_BACKGROUND_COLOR,
         payload: payload
     }
 }    

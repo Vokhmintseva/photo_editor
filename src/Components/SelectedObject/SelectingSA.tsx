@@ -10,6 +10,7 @@ import { selectArea, whitenArea } from '../../store/actions/Actions';
 
 interface SelectingSAProps {
     editor: Editor,
+    onShowSelArea: (should: boolean) => void,
     onSelectArea: (payload: {startPoint: Point, endPoint: Point}) => void,
     onWhitenArea: () => void
 }
@@ -88,6 +89,7 @@ const SelectingSA = (props: SelectingSAProps) => {
             ...mouseState,
             isMousePressed: false,
         });
+        props.onShowSelArea(false);
     }
     
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);

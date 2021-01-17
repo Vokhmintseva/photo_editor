@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 
 interface SelectedAreaProps {
   editor: Editor,
+  onShowSelArea: (should: boolean) => void,
   onDropSelection: (payload: {where: Point}) => void,
   onJoinSelectionWithCanvas: () => void
 }
@@ -37,8 +38,8 @@ const SelectedArea = (props: SelectedAreaProps) => {
         console.log('SA in onMouseDownHandler function');
         if (isSelectedArea(props.editor.selectedObject)) {
             props.onJoinSelectionWithCanvas();
-            //dispatch(joinSelectionWithCanvas, {});
             setIntention(Intent.Nothing);
+            props.onShowSelArea(true);
         }
     }
     
@@ -83,8 +84,9 @@ const SelectedArea = (props: SelectedAreaProps) => {
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
         props.onDropSelection({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
-        //dispatch(dropSelection, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
+        
+        
     }
 
     useEffect(() => { 

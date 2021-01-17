@@ -189,7 +189,7 @@ const TextObject = (props: TextObjProps) => {
         wrapText(ctx!, text, position.x, position.y - canvasCoords.top + fontSize, props.editor.selectedObject!.w, lineHeight);
         let newImgData = ctx!.getImageData(0, 0, canvas!.width, canvas!.height);
         props.onAddImage({newImage: newImgData});
-        props.onDeselectArea();
+        //props.onDeselectArea();
         // dispatch(addImage, {newImage: newImgData});
         // dispatch(deSelectArea, {});
     }
@@ -319,25 +319,25 @@ const TextObject = (props: TextObjProps) => {
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftTop}
-                resetFigure={resetFigure}
+                showNewFigure={resetFigure}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightTop}
-                resetFigure={resetFigure}
+                showNewFigure={resetFigure}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftBottom}
-                resetFigure={resetFigure}
+                showNewFigure={resetFigure}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightBottom}
-                resetFigure={resetFigure}
+                showNewFigure={resetFigure}
             />       
         </div>
     ) 

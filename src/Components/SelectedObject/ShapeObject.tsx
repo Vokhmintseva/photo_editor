@@ -1,11 +1,12 @@
 import React, { useRef, useEffect, useState, useContext }  from 'react';
 import { Editor, Figure, Point } from '../../model';
 import './SelectedObject.css';
-import { dispatch } from '../../reducer';
-import { setFigureBorderColor, setFigureBackgroundColor, resizeEditorObj, dropShapeObj, isShapeObject, addImage, deSelectArea, addFigure } from '../../actions';
+import { isShapeObject } from '../../actions';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
 import Slider from './Slider';
 import SliderType from './slyderType';
+import { connect } from 'react-redux';
+import { addImage, resizeEditorObj, deselectArea, dropShapeObj, setFigureBackgroundColor, setFigureBorderColor } from '../../store/actions/Actions';
 
 const borderWidth = 2;
 const strokeWidth = 2;
@@ -14,9 +15,15 @@ interface ShapeObjProps {
     editor: Editor,
     figure: Figure,
     onShowFigureClickHandler: (event: any) => void,
-    shouldResetFigure: boolean,
-    onShouldResetFigureHandler: (should: boolean) => void,
+    showNewFigure: boolean,
+    onShowNewFigure: (should: boolean) => void,
     onCancelFigureClickHandler: () => void,
+    onResizeEditorObj: (payload: {newPoint: Point, newWidth: number, newHeight: number}) => void,
+    onDropShapeObj: (payload: {where: Point}) => void,
+    onAddImage: (payload: {newImage: ImageData}) => void,
+    onDeselectArea: () => void,
+    onSetFigureBackgroundColor: (payload: {newColor: string}) => void,
+    onSetFigureBorderColor: (payload: {newColor: string}) => void
 }
 const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRect, canvasCoords: DOMRect): {left: number, top: number} {
     if (left < canvasCoords.left) {
@@ -88,7 +95,7 @@ const ShapeObject = (props: ShapeObjProps) => {
     function onChangeSize(x: number, y: number, width: number, height: number) {
         const canvasCoords = canvas!.getBoundingClientRect();
         setPosition({x, y, width, height});
-        dispatch(resizeEditorObj, {newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
+        props.onResizeEditorObj({newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
     function resetFigureCoords() {
@@ -107,22 +114,21 @@ const ShapeObject = (props: ShapeObjProps) => {
         if (isShapeObject(props.editor.selectedObject)) {
             drawFigure(props.figure, context, position, props.editor.selectedObject.borderColor, props.editor.selectedObject.backgroundColor, {x: position.x + strokeWidth / 2, y: position.y - canvasCoords.top + strokeWidth});
             let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
-            dispatch(addImage, {newImage: newImgData});
-            dispatch(deSelectArea, {});
+            props.onAddImage({newImage: newImgData});
+            //props.onDeselectArea();
             props.onCancelFigureClickHandler();
         }
     }
 
     function onChangeBorderColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
-        dispatch(setFigureBorderColor, {newColor: event.target.value});
+        props.onSetFigureBorderColor({newColor: event.target.value});
     }
 
     function onChangeBackgroundColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
-        dispatch(setFigureBackgroundColor, {newColor: event.target.value});
+        props.onSetFigureBackgroundColor({newColor: event.target.value});
     }
  
     function onMouseDownShapeObjHandler(event: any) {
-        //const canvasElem: HTMLTextAreaElement = canvasRef.current!;
         if (event.defaultPrevented) return;
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
@@ -147,14 +153,14 @@ const ShapeObject = (props: ShapeObjProps) => {
         const selCanvasCoords = selCanvasElem.getBoundingClientRect();
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, selCanvasCoords, canvasCoords);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
-        dispatch(dropShapeObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
+        props.onDropShapeObj({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
     }
 
     useEffect(() => { 
-        if (props.shouldResetFigure) {
+        if (props.showNewFigure) {
             resetFigureCoords();
-            props.onShouldResetFigureHandler(false);
+            props.onShowNewFigure(false);
         }    
         const canvasElem: HTMLCanvasElement = canvasRef.current!;
         const context = canvasElem.getContext("2d")!;
@@ -230,28 +236,45 @@ const ShapeObject = (props: ShapeObjProps) => {
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftTop}
-                resetFigure={props.shouldResetFigure}
+                showNewFigure={props.showNewFigure}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightTop}
-                resetFigure={props.shouldResetFigure}
+                showNewFigure={props.showNewFigure}
             />
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.LeftBottom}
-                resetFigure={props.shouldResetFigure}
+                showNewFigure={props.showNewFigure}
             />  
             <Slider
                 pos={position}
                 changeSize={onChangeSize}
                 type={SliderType.RightBottom}
-                resetFigure={props.shouldResetFigure}
+                showNewFigure={props.showNewFigure}
             /> 
         </div>
     ) 
 }
 
-export default ShapeObject;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+  
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onResizeEditorObj: (payload: {newPoint: Point, newWidth: number, newHeight: number}) => dispatch(resizeEditorObj(payload)),
+      onDropShapeObj: (payload: {where: Point}) => dispatch(dropShapeObj(payload)),
+      onAddImage: (payload: {newImage: ImageData}) => dispatch(addImage(payload)),
+      onDeselectArea: () => dispatch(deselectArea()),
+      onSetFigureBackgroundColor: (payload: {newColor: string}) => dispatch(setFigureBackgroundColor(payload)),
+      onSetFigureBorderColor: (payload: {newColor: string}) => dispatch(setFigureBorderColor(payload)),
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ShapeObject);

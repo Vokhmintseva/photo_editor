@@ -1,8 +1,10 @@
 import { SELECT_AREA, WHITEN_AREA, JOIN_SA_WITH_CANVAS, DROP_SA, DESELECT_AREA, ADD_FIGURE, APPLY_FILTER, CUT,
-CROP, CREATE_CANVAS, ADD_IMAGE, RESIZE_EDITOR_OBJ, DROP_TEXT_OBJ, SELECT_TEXT_AREA } from '../actions/actionTypes';
+CROP, CREATE_CANVAS, ADD_IMAGE, RESIZE_EDITOR_OBJ, DROP_TEXT_OBJ, SELECT_TEXT_AREA, SET_FIGURE_BACKGROUND_COLOR,
+SET_FIGURE_BORDER_COLOR } from '../actions/actionTypes';
 import { Point, Editor } from '../../model';
 import { selectArea, whitenArea, joinSelectionWithCanvas, dropSelection, cleanCanvas, deSelectArea, addFigure,
-applyFilter, cut, crop, createCanvas, addImage, resizeEditorObj, dropTextObj, selectTextArea } from '../../actions';
+applyFilter, cut, crop, createCanvas, addImage, resizeEditorObj, dropTextObj, selectTextArea, setFigureBackgroundColor,
+setFigureBorderColor } from '../../actions';
 
 let editor: Editor = {
     //canvas: {} as ImageData,
@@ -71,7 +73,15 @@ export default function editorReducer (state = initialState, action: any) {
         case SELECT_TEXT_AREA:
             return {
                 editor: selectTextArea(state.editor, action.payload)
-            }                                                                       
+            }     
+        case SET_FIGURE_BACKGROUND_COLOR:
+            return {
+                editor: setFigureBackgroundColor(state.editor, action.payload)
+            }   
+        case SET_FIGURE_BORDER_COLOR:
+            return {
+                editor: setFigureBorderColor(state.editor, action.payload)
+            }                                                                      
         default:
             return state  
     }

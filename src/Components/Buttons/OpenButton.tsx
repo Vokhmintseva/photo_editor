@@ -1,6 +1,5 @@
 import React, {useContext}  from 'react';
 import {Editor} from '../../model';
-import { dispatch } from '../../reducer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { addImage } from '../../store/actions/Actions';
 import { connect } from 'react-redux';

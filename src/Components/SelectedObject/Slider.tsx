@@ -10,7 +10,7 @@ interface SliderProps {
     pos: {x: number, y: number, width: number, height: number},
     changeSize: (x: number, y: number, width: number, height: number) => void,
     type: SliderType,
-    resetFigure: Boolean,
+    showNewFigure: Boolean,
     // onResetSlidersHandler: () => void,
     // resetSliders: Boolean,
 }
@@ -142,7 +142,7 @@ function Slider(props: SliderProps) {
             cursorStyle.current = 'nw-resize';
             break;     
         }
-        if (props.resetFigure) {
+        if (props.showNewFigure) {
             switch (props.type) {
                 case SliderType.LeftTop:
                     offset.current = {x: -halfSizeOfSlider, y: -halfSizeOfSlider};

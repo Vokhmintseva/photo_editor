@@ -124,7 +124,7 @@ function mapStateToProps(state: any) {
 function mapDispatchToProps(dispatch: any) {
     return {
       onDeselectArea: () => dispatch(deselectArea()),
-      onApplyFilter: (payload: {filterColor: string}) => dispatch(payload),
+      onApplyFilter: (payload: {filterColor: string}) => dispatch(applyFilter(payload)),
       onCut: () => dispatch(cut()),
       onCrop: () => dispatch(crop()),
       onCreateCanvas: (payload: {width: number, height: number}) => dispatch(createCanvas(payload))

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Figure, Editor } from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
 import { isSelectedArea, isTextObject, isShapeObject } from '../../actions';
@@ -8,8 +8,6 @@ import TextObject from '../SelectedObject/TextObject';
 import ShapeObject from '../SelectedObject/ShapeObject';
 import Canvas from '../Canvas/Canvas';
 import './EditorComponent.css';
-import { Intent, setIntention } from '../../intentResolver';
-import { dispatch, editor } from '../../reducer';
 import SelectingSA from '../SelectedObject/SelectingSA';
 import SelectingTextObject from '../SelectedObject/SelectingTextObject';
 import Gallery from '../Gallery/Gallery';
@@ -25,37 +23,41 @@ interface EditorComponentProps {
 export const CanvasContext = React.createContext(null);
 
 function EditorComponent(props: EditorComponentProps) {
-    const [shouldShowCamera, setShouldShowCamera] = useState(false);
+    const [showCamera, setShowCamera] = useState(false);
     const [showTextArea, setShowTextArea] = useState(false);
     const [showShapeObj, setShowShapeObj] = useState(false);
+    const [showSelArea, setShowSelArea] = useState(true);
+    const [figure, setFigure] = useState(Figure.circle);
+    const [showNewFigure, setShowNewFigure] = useState(false);
+    const [showGallery, setShowGallery] = useState(false);
+
     const [canvas, setCanvas] = useState(null);
     const getCanvas = (ref: any) => setCanvas(ref.current!);
-    const [figure, setFigure] = useState(Figure.circle);
-    const [shouldResetFigure, setShouldResetFigure] = useState(false);
-    const [showGallery, setIsOpenGallery] = useState(false);
 
     const onShowCamera = () => {
-        setShouldShowCamera(!shouldShowCamera);
+        setShowCamera(!showCamera);
     }
 
-    function onShouldResetFigureHandler(should: boolean) {
-        setShouldResetFigure(should);
+    const onShowSelArea = (should: boolean) => {
+        setShowSelArea(should);
+    }
+
+    function onShowNewFigure(should: boolean) {
+        setShowNewFigure(should);
     }
 
     const onOpenGalleryHandler = () => {
-        setIsOpenGallery(!showGallery);
+        setShowGallery(!showGallery);
     }
 
     const onCancelFigureClickHandler = () => {
         props.onDeselectArea();
-        //dispatch(deSelectArea, {});
         setShowShapeObj(false);
     }
 
     const onShowTextArea = () => {
         if (showTextArea) {
             props.onDeselectArea();
-            //dispatch(deSelectArea, {});
         }
         setShowTextArea(!showTextArea);
         setShowShapeObj(false);
@@ -63,11 +65,12 @@ function EditorComponent(props: EditorComponentProps) {
 
     const onShowFigureClickHandler = (event: any) => {
         const newFigure: Figure = event.target.id;
-        setShouldResetFigure(true);
+        setShowNewFigure(true);
         setShowShapeObj(true);
         setFigure(newFigure);
         props.onAddFigure({figureType: newFigure});
-        //dispatch(addFigure, {figureType: newFigure});
+        setShowTextArea(false);
+        setShowGallery(false);
         setShowTextArea(false);
     }
     
@@ -81,8 +84,9 @@ function EditorComponent(props: EditorComponentProps) {
                     onShowFigureClickHandler={onShowFigureClickHandler}
                     onOpenGalleryHandler={onOpenGalleryHandler}
                 />
+                
                 {(props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) && 
-                 <SelectedArea />
+                 <SelectedArea onShowSelArea={onShowSelArea}/>
                 }
 
                 {(props.editor.selectedObject && isTextObject(props.editor.selectedObject)) &&
@@ -90,17 +94,16 @@ function EditorComponent(props: EditorComponentProps) {
                     onShowTextArea={onShowTextArea}
                 />}
 
-                {/* {(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
+                {(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
                 <ShapeObject
-                    editor={props.editor}
                     figure={figure}
                     onShowFigureClickHandler={onShowFigureClickHandler}
-                    shouldResetFigure={shouldResetFigure}
-                    onShouldResetFigureHandler={onShouldResetFigureHandler}
+                    showNewFigure={showNewFigure}
+                    onShowNewFigure={onShowNewFigure}
                     onCancelFigureClickHandler={onCancelFigureClickHandler}
-                />} */}
+                />}
 
-                {!shouldShowCamera
+                {!showCamera
                 ? <Canvas 
                     setCanv={getCanvas}
                 />
@@ -108,18 +111,19 @@ function EditorComponent(props: EditorComponentProps) {
                     onShowCamera={onShowCamera}
                 />}
 
-                {!showTextArea && !showShapeObj && !showGallery && !props.editor.selectedObject && 
-                <SelectingSA />
+                {!showTextArea && !showShapeObj && !showGallery && showSelArea && 
+                <SelectingSA onShowSelArea={onShowSelArea}/>
                 }       
 
                 {showTextArea && !showGallery && !showShapeObj &&
                 <SelectingTextObject/>
                 }
-                {/* {showGallery &&
-                    <Gallery 
-                        onOpenGalleryHandler={onOpenGalleryHandler}
-                    />
-                } */}
+                
+                {showGallery &&
+                <Gallery 
+                    onOpenGalleryHandler={onOpenGalleryHandler}
+                />
+                }
                
             </div>
         </CanvasContext.Provider>

@@ -94,10 +94,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
         //setIntention(Intent.SelectingTextObj);
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
             props.onJoinSelectionWithCanvas();
-            props.onDeselectArea();
-            // dispatch(joinSelectionWithCanvas, {})
-            // dispatch(deSelectArea, {});
-            
+            //props.onDeselectArea();
         }
     }, []);
 

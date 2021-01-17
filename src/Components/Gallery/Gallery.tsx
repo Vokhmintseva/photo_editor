@@ -1,15 +1,11 @@
-import React, { useContext, useState, useEffect }  from 'react';
-import {Editor} from '../../model';
-import {CanvasContext} from '../EditorComponent/EditorComponent';
-import { createClient, PhotosWithTotalResults, ErrorResponse, Photos } from 'pexels';
+import React, { useState, useEffect }  from 'react';
+import { createClient, PhotosWithTotalResults, ErrorResponse } from 'pexels';
 import './Gallery.css';
 import PreviewImg from './PreviewImg';
 
 const client = createClient('563492ad6f91700001000001f32c0c635f2c46e4badcbd278b68e104');
 
 interface GalleryProps {
-    //editor: Editor,
-    //reference: any
     onOpenGalleryHandler: () => void,
 }
 
