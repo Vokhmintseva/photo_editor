@@ -63,7 +63,7 @@ function putImgDataOnCanvas (editor: Editor): ImageData {
 	return new ImageData(newPxArray, editor.canvas.width, editor.canvas.height);
 }
 
-export function joinSelectionWithCanvas(editor: Editor): Editor {
+export function joinSelectionWithCanvas(editor: Editor, payload: Object): Editor {
 	return {
 		...editor,
 		canvas: putImgDataOnCanvas(editor),

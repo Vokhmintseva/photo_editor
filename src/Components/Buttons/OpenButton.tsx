@@ -1,16 +1,16 @@
 import React, {useContext}  from 'react';
 import {Editor} from '../../model';
-import {addImage} from '../../actions';
 import { dispatch } from '../../reducer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
+import { addImage } from '../../store/actions/Actions';
+import { connect } from 'react-redux';
 
 interface OpenButtonProps {
     editor: Editor,
-    //reference: any
+    onAddImage: (payload: {newImage: ImageData}) => void
 }
 
-
-function OpenButton(openButtonProps: OpenButtonProps) {
+function OpenButton(props: OpenButtonProps) {
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
         let file: any = e!.target!.files![0];
@@ -20,18 +20,11 @@ function OpenButton(openButtonProps: OpenButtonProps) {
         let url = window.URL.createObjectURL(new Blob(binaryData, {type: "originalFile.type"}));
         image.src = url;
         e.target.value = '';
-        
-        
-        //if (canvas !== null) {
-            console.log('canvas width from open button props', canvas!.width);
-            let context = canvas!.getContext('2d');
-        //}
-        
-        
+        let context = canvas!.getContext('2d');
         image.onload = () => {
             let imageWidth = image.width;
             let imageHeight = image.height;
-            if (imageWidth > openButtonProps.editor.canvas.width || imageHeight > openButtonProps.editor.canvas.height) {
+            if (imageWidth > props.editor.canvas.width || imageHeight > props.editor.canvas.height) {
                 let shouldEnlarge = window.confirm("импортируемая фотография больше по размеру холста. Увеличить полотно до размера фотографии?");
                 if (shouldEnlarge) {
                     canvas!.width = imageWidth;
@@ -41,16 +34,25 @@ function OpenButton(openButtonProps: OpenButtonProps) {
             } else
                 context!.drawImage(image, 0, 0);
             let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
-            dispatch(addImage, {newImage: newImgData})
+            props.onAddImage({newImage: newImgData});
         }
     }
-
-
-
 
     return (
         <input type="file" name="myImage" onChange={onImageChange} style={{margin: '5px'}}/>
     );
 }    
 
-export default OpenButton;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onAddImage: (payload: {newImage: ImageData}) => dispatch(addImage(payload))
+    }
+  }
+  
+export default connect(mapStateToProps, mapDispatchToProps)(OpenButton);

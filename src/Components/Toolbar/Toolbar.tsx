@@ -1,20 +1,27 @@
 import React, { useState, useContext, useEffect, useRef } from 'react'
-import {Editor} from '../../model'
+import { Editor, Figure } from '../../model'
 import './Toolbar.css';
 import SelectFilter from '../Select/SelectFilter';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import SnapshotButton from '../Buttons/SnapshotButton';
-import {applyFilter, cut, crop, createCanvas, deSelectArea, isSelectedArea} from '../../actions';
+import { isSelectedArea } from '../../actions';
 import { dispatch } from '../../reducer';
+import { deselectArea, crop, cut, createCanvas, applyFilter } from '../../store/actions/Actions';
+import { connect } from 'react-redux';
 
 interface ToolbarProps {
     editor: Editor,
-    toggleShowCamera: () => void,
-    toggleShowTextArea: () => void,
+    onShowCamera: () => void,
+    onShowTextArea: () => void,
     showTextArea: Boolean,
     onShowFigureClickHandler: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
     onOpenGalleryHandler: () => void,
+    onDeselectArea: () => void,
+    onApplyFilter: (payload: {filterColor: string}) => void,
+    onCut: () => void,
+    onCrop: () => void,
+    onCreateCanvas: (payload: {width: number, height: number}) => void
 }
 
 function Toolbar(props: ToolbarProps) {
@@ -27,22 +34,22 @@ function Toolbar(props: ToolbarProps) {
     }
 
     function filterButtonHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-        dispatch(applyFilter, {filterColor: filter})
+        props.onApplyFilter({filterColor: filter});
     }
     
     function onClearSelectionHandler() {
-        dispatch(cut, {});
-        dispatch(deSelectArea, {});
+        props.onCut();
+        props.onDeselectArea();
     }
 
     function onSelectionCropHandler() {
-        dispatch(crop, {});
+        props.onCrop();
     }
 
     function onClearAllHandler() {
         let shouldremoveCanvas = window.confirm("Текущий холст будет удален. Вы подтверждаете удаление холста?");
         if (shouldremoveCanvas) {
-            dispatch(createCanvas, {width: 800, height: 600});
+            props.onCreateCanvas({width: 800, height: 600});
         } 
     }
 
@@ -66,13 +73,13 @@ function Toolbar(props: ToolbarProps) {
 
     return (
         <div className='toolbar'>
-            <OpenButton editor={props.editor} />
+            <OpenButton />
             <button onClick={props.onOpenGalleryHandler}>Галерея</button>
-            <SaveButton editor={props.editor} />
+            <SaveButton />
             <button onClick={onClearAllHandler}>New Canvas</button>
             {select}
             <button onClick={filterButtonHandler}>Применить фильтр</button>
-            <SnapshotButton editor={props.editor} toggleShowCamera={props.toggleShowCamera}/>
+            <SnapshotButton onShowCamera={props.onShowCamera}/>
             {props.editor.selectedObject && isSelectedArea(props.editor.selectedObject) &&
             <div>
             <button onClick={onClearSelectionHandler}>Cut</button>
@@ -82,7 +89,7 @@ function Toolbar(props: ToolbarProps) {
             <button 
                 ref={showTextBtnRef}
                 title="Текст"
-                onClick={props.toggleShowTextArea}
+                onClick={props.onShowTextArea}
             >A</button>
             <div className="ShapeBar">
                 <button 
@@ -103,11 +110,25 @@ function Toolbar(props: ToolbarProps) {
                     id="triangle"
                     onClick={props.onShowFigureClickHandler}
                 ></button>
-
             </div>
-
         </div>
     )
 }
 
-export default Toolbar;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onDeselectArea: () => dispatch(deselectArea()),
+      onApplyFilter: (payload: {filterColor: string}) => dispatch(payload),
+      onCut: () => dispatch(cut()),
+      onCrop: () => dispatch(crop()),
+      onCreateCanvas: (payload: {width: number, height: number}) => dispatch(createCanvas(payload))
+    }
+  }
+  
+export default connect(mapStateToProps, mapDispatchToProps)(Toolbar);

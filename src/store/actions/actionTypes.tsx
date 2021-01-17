@@ -1,0 +1,14 @@
+export const SELECT_AREA = 'SELECT_AREA';
+export const WHITEN_AREA = 'WHITEN_AREA';
+export const JOIN_SA_WITH_CANVAS = 'JOIN_SA_WITH_CANVAS';
+export const DROP_SA = 'DROP_SA';
+export const DESELECT_AREA = 'DESELECT_AREA';
+export const ADD_FIGURE = 'ADD_FIGURE';
+export const APPLY_FILTER = 'APPLY_FILTER';
+export const CUT = 'CUT';
+export const CROP = 'CROP';
+export const CREATE_CANVAS = 'CREATE_CANVAS';
+export const ADD_IMAGE = 'ADD_IMAGE';
+export const RESIZE_EDITOR_OBJ = 'RESIZE_EDITOR_OBJ';
+export const DROP_TEXT_OBJ = 'DROP_TEXT_OBJ';
+export const SELECT_TEXT_AREA = 'SELECT_TEXT_AREA';

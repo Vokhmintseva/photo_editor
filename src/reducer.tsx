@@ -15,7 +15,7 @@ export function dispatch<T>(func: { (edtr: Editor, obj: T): Editor }, obj: T): v
     editor = func(editor, obj);
     ReactDOM.render(
     <React.StrictMode>
-        <App editor={editor}/>
+        <App />
     </React.StrictMode>,
     document.getElementById('root')
     );  
@@ -25,3 +25,13 @@ export function getSelectionImgData () {
     let imgData = getImageDataOfSelectedArea(editor);  
     return imgData;
 }
+
+// export function dispatch<T>(func: { (edtr: Editor, obj: T): Editor }, obj: T): void {
+//     editor = func(editor, obj);
+//     ReactDOM.render(
+//     <React.StrictMode>
+//         <App editor={editor}/>
+//     </React.StrictMode>,
+//     document.getElementById('root')
+//     );  
+// }

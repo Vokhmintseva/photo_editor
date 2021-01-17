@@ -1,16 +1,21 @@
 import React, { useState, useRef, useEffect, useContext}  from 'react';
-import { Editor } from '../../model';
+import { Editor, Point } from '../../model';
 import { dispatch, editor } from '../../reducer';
-import { selectArea, whitenArea } from '../../actions';
+//import { selectArea, whitenArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
 import { resolve, intention, Intent } from '../../intentResolver';
+import { connect } from 'react-redux';
+import { selectArea, whitenArea } from '../../store/actions/Actions';
 
-interface MakingSelectionProps {
+interface SelectingSAProps {
     editor: Editor,
+    onSelectArea: (payload: {startPoint: Point, endPoint: Point}) => void,
+    onWhitenArea: () => void
 }
 
-const MakingSelection = (props: MakingSelectionProps) => {
+
+const SelectingSA = (props: SelectingSAProps) => {
        
     let svgRef = useRef(null);
     
@@ -27,6 +32,7 @@ const MakingSelection = (props: MakingSelectionProps) => {
     });
         
     function onMouseDownSVGHandler(event: any) {
+        
         const canvasCoords = canvas!.getBoundingClientRect();
         if (event.clientY < canvasCoords.top) return;
         resolve(editor, {x: event.clientX, y: event.clientY}, canvasCoords);
@@ -61,8 +67,6 @@ const MakingSelection = (props: MakingSelectionProps) => {
     const onMouseUpSVGHandler = function (event: any) {
         if (!mouseState.isMousePressed) return;
         console.log('SA SELECTING onMouseUpSVGHandler');
-        console.log(event.clientX);
-        console.log(event.clientY);
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
@@ -74,11 +78,10 @@ const MakingSelection = (props: MakingSelectionProps) => {
             const startY = selectionCoords.startY as number;
             const endX = selectionCoords.endX as number;
             const endY = selectionCoords.endY as number;
-                  
-            //if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
-                dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
-                dispatch(whitenArea, {});
-            //}
+            props.onSelectArea({startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
+            props.onWhitenArea();
+            // dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
+            // dispatch(whitenArea, {});
 
         }
         setMouseState({
@@ -126,4 +129,17 @@ const MakingSelection = (props: MakingSelectionProps) => {
     )
 }
 
-export default MakingSelection;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onSelectArea: (payload: {startPoint: Point, endPoint: Point}) => dispatch(selectArea(payload)),
+      onWhitenArea: () => dispatch(whitenArea())
+    }
+  }
+  
+export default connect(mapStateToProps, mapDispatchToProps)(SelectingSA);

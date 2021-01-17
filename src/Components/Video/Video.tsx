@@ -1,11 +1,12 @@
 import React, {useEffect, useRef, useContext}  from 'react';
-import {Editor} from '../../model';
-import {addImage} from '../../actions'
 import { dispatch } from '../../reducer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
+import { addImage } from '../../store/actions/Actions';
+import { connect } from 'react-redux';
 
 interface VideoProps {
-    toggleShowCamera: () => void,
+    onShowCamera: () => void,
+    onAddImage: (payload: {newImage: ImageData}) => void
 }
 
 function Video (props: VideoProps) {
@@ -17,7 +18,7 @@ function Video (props: VideoProps) {
         if (navigator.mediaDevices.getUserMedia) {
             //метод  MediaDevices.getUserMedia() запрашивая медиапоток
             //Успешное выполнение промиса передает объект потока( stream ) в качестве параметра функции метода then()
-              navigator.mediaDevices.getUserMedia({audio: true, video: true }).then(function (stream) {
+              navigator.mediaDevices.getUserMedia({audio: false, video: true }).then(function (stream) {
               video = document.querySelector("#video");
               if (video) {
                   //stream присваевается свойству srcObject элемента <video>, направляя поток в него
@@ -34,7 +35,7 @@ function Video (props: VideoProps) {
 
     function stopWebCam() {
         video.srcObject.getVideoTracks()[0].stop();
-        props.toggleShowCamera();
+        props.onShowCamera();
     } 
 
     function snapshot() {
@@ -42,13 +43,13 @@ function Video (props: VideoProps) {
         let context = canvas!.getContext('2d');
         context!.drawImage(video, 0, 0);
         let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
-        dispatch(addImage, {newImage: newImgData});
+        props.onAddImage({newImage: newImgData});
         stopWebCam();
     }
     
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     
-    useEffect(() => { //функция запутится после рендеринга
+    useEffect(() => {
         startWebcam();
         setTimeout(function() {
             const cancelPhotoButton: HTMLCanvasElement = cancelPhotoButtonRef.current!;
@@ -67,6 +68,10 @@ function Video (props: VideoProps) {
     )
 }
 
-export default Video;
-
-//position: 'relative', top: videoProps.editor.canvas.height
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onAddImage: (payload: {newImage: ImageData}) => dispatch(addImage(payload))
+    }
+  }
+  
+export default connect(null, mapDispatchToProps)(Video);

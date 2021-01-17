@@ -1,21 +1,27 @@
 import React, { useRef, useEffect, useState, useContext }  from 'react';
-import {Editor} from '../../model';
+import { Editor, Point } from '../../model';
 import './SelectedObject.css';
 import { dispatch } from '../../reducer';
-import { dropTextObj, isTextObject, addImage, deSelectArea, resizeEditorObj } from '../../actions';
+import { isTextObject } from '../../actions';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
 import { resolve, intention, Intent, setIntention } from '../../intentResolver';
 import SelectFontFamily from '../Select/SelectFontFamily';
 import SelectFontSize from '../Select/SelectFontSize';
 import Slider from './Slider';
 import SliderType from './slyderType';
+import { connect } from 'react-redux';
+import { deselectArea, addImage, resizeEditorObj, dropTextObj } from '../../store/actions/Actions';
 
 const fonts = ['Roboto', 'Open Sans', 'Montserrat', 'Roboto Condensed', 'Source Sans Pro',
 'Oswald', 'Merriweather', 'Noto Sans', 'Yanone Kaffeesatz', 'Caveat'];
 
 interface TextObjProps {
     editor: Editor,
-    toggleShowTextArea: () => void,
+    onShowTextArea: () => void,
+    onResizeEditorObj: (payload: {newPoint: Point, newWidth: number, newHeight: number}) => void,
+    onDropTextObj: (payload: {where: Point}) => void,
+    onAddImage: (payload: {newImage: ImageData}) => void,
+    onDeselectArea: () => void,
 }
 
 function getInitColor (editor: Editor) {
@@ -146,7 +152,8 @@ const TextObject = (props: TextObjProps) => {
     function onChangeSize(x: number, y: number, width: number, height: number) {
         const canvasCoords = canvas!.getBoundingClientRect();
         setPosition({x, y, width, height});
-        dispatch(resizeEditorObj, {newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
+        props.onResizeEditorObj({newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
+        //dispatch(resizeEditorObj, {newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
     function onFontFamilyChangeHandler(event: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -181,8 +188,10 @@ const TextObject = (props: TextObjProps) => {
         ctx!.font = fontWeight + " " + fontStyle + " " + fontSize + "px " + fontFamily;
         wrapText(ctx!, text, position.x, position.y - canvasCoords.top + fontSize, props.editor.selectedObject!.w, lineHeight);
         let newImgData = ctx!.getImageData(0, 0, canvas!.width, canvas!.height);
-        dispatch(addImage, {newImage: newImgData});
-        dispatch(deSelectArea, {});
+        props.onAddImage({newImage: newImgData});
+        props.onDeselectArea();
+        // dispatch(addImage, {newImage: newImgData});
+        // dispatch(deSelectArea, {});
     }
     
     function onMouseDownTextObjHandler(event: any) {
@@ -216,7 +225,8 @@ const TextObject = (props: TextObjProps) => {
         const textAreaCoords = textAreaElem.getBoundingClientRect();
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, textAreaCoords, canvasCoords);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
-        dispatch(dropTextObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
+        props.onDropTextObj({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
+        //dispatch(dropTextObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
     }
 
@@ -280,7 +290,7 @@ const TextObject = (props: TextObjProps) => {
                     </button>
                     <button 
                         className="abolishBtn"
-                        onClick={props.toggleShowTextArea}
+                        onClick={props.onShowTextArea}
                         title="Отмена"></button>
                 </div>
             </div>
@@ -333,4 +343,19 @@ const TextObject = (props: TextObjProps) => {
     ) 
 }
 
-export default TextObject;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+  
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onResizeEditorObj: (payload: {newPoint: Point, newWidth: number, newHeight: number}) => dispatch(resizeEditorObj(payload)),
+      onDropTextObj: (payload: {where: Point}) => dispatch(dropTextObj(payload)),
+      onAddImage: (payload: {newImage: ImageData}) => dispatch(addImage(payload)),
+      onDeselectArea: () => dispatch(deselectArea())
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TextObject);

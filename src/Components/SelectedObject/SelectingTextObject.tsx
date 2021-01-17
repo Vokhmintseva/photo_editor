@@ -1,14 +1,19 @@
 import React, { useState, useRef, useEffect, useContext }  from 'react';
-import {Editor} from '../../model';
+import { Editor, Point } from '../../model';
 import {dispatch} from '../../reducer';
-import {selectTextArea, deSelectArea, joinSelectionWithCanvas, isSelectedArea } from '../../actions';
+import { isSelectedArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { setIntention, intention, Intent } from '../../intentResolver';
 import './SelectedObject.css';
+import { connect } from 'react-redux';
+import { deselectArea, joinSelectionWithCanvas, selectTextArea } from '../../store/actions/Actions';
 
 interface TextAreaProps {
     editor: Editor,
+    onDeselectArea: () => void,
+    onSelectTextArea: (payload: {startPoint: Point, endPoint: Point}) => void,
+    onJoinSelectionWithCanvas: () => void
 }
 
 const SelectingTextObject = (props: TextAreaProps) => {
@@ -74,8 +79,8 @@ const SelectingTextObject = (props: TextAreaProps) => {
             const startY = selectionCoords.startY + 2 as number;
             const endX = selectionCoords.endX + 2 as number;
             const endY = selectionCoords.endY + 2 as number;
-            
-            dispatch(selectTextArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
+            props.onSelectTextArea({startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
+            //dispatch(selectTextArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
             
         }
         
@@ -88,8 +93,10 @@ const SelectingTextObject = (props: TextAreaProps) => {
     useEffect(() => {
         //setIntention(Intent.SelectingTextObj);
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
-            dispatch(joinSelectionWithCanvas, {})
-            dispatch(deSelectArea, {});
+            props.onJoinSelectionWithCanvas();
+            props.onDeselectArea();
+            // dispatch(joinSelectionWithCanvas, {})
+            // dispatch(deSelectArea, {});
             
         }
     }, []);
@@ -131,4 +138,18 @@ const SelectingTextObject = (props: TextAreaProps) => {
     )
 }
 
-export default SelectingTextObject;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+  
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onDeselectArea: () => dispatch(deselectArea()),
+      onSelectTextArea: (payload: {startPoint: Point, endPoint: Point}) => dispatch(selectTextArea(payload)),
+      onJoinSelectionWithCanvas: () => dispatch(joinSelectionWithCanvas())
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SelectingTextObject);

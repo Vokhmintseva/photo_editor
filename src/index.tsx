@@ -7,20 +7,21 @@ import {Editor} from './model';
 import {createCanvas} from './actions';
 import {editor} from './reducer';
 import {dispatch} from './reducer';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import rootReducer from './store/reducers/rootReducer';
 
-  // let editor: Editor = {
-  //   canvas: {} as ImageData,
-  //   selectedObject: null,
-  // }
-  // editor.canvas = createCanvas(editor).canvas;
-   dispatch(createCanvas, {width: 800, height: 600});
+const store = createStore(rootReducer);
+//dispatch(createCanvas, {width: 800, height: 600});
 
+const app = (
+  <Provider store={store}>
+    <React.StrictMode>
+     <App/>
+   </React.StrictMode>
+  </Provider>
+)
 
-// ReactDOM.render(
-//   <React.StrictMode>
-//     <App editor={editor}/>
-//   </React.StrictMode>,
-//   document.getElementById('root')
-// );
+ReactDOM.render(app, document.getElementById('root'));
 
 serviceWorker.unregister();

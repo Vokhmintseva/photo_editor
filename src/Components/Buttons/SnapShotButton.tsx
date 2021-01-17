@@ -1,15 +1,13 @@
 import React from 'react';
-import {Editor} from '../../model';
 
 interface SnapshotButtonProps {
-    editor: Editor,
-    toggleShowCamera: () => void,
+    onShowCamera: () => void,
 }
 
 function SnapshotButton(props: SnapshotButtonProps) {
     
     function snapshotClickHandler() {
-        props.toggleShowCamera();
+        props.onShowCamera();
     }   
 
     return (

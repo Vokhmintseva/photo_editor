@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Figure, Editor } from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
-import { isSelectedArea, isTextObject, isShapeObject, addFigure, deSelectArea } from '../../actions';
+import { isSelectedArea, isTextObject, isShapeObject } from '../../actions';
 import Video from '../Video/Video';
 import SelectedArea from '../SelectedObject/SelectedArea';
 import TextObject from '../SelectedObject/TextObject';
@@ -13,9 +13,13 @@ import { dispatch, editor } from '../../reducer';
 import SelectingSA from '../SelectedObject/SelectingSA';
 import SelectingTextObject from '../SelectedObject/SelectingTextObject';
 import Gallery from '../Gallery/Gallery';
+import { connect } from 'react-redux';
+import { deselectArea, addFigure } from '../../store/actions/Actions';
 
 interface EditorComponentProps {
-    editor: Editor
+    editor: Editor,
+    onDeselectArea: () => void,
+    onAddFigure: (payload: {figureType: Figure}) => void
 }
 
 export const CanvasContext = React.createContext(null);
@@ -30,7 +34,7 @@ function EditorComponent(props: EditorComponentProps) {
     const [shouldResetFigure, setShouldResetFigure] = useState(false);
     const [showGallery, setIsOpenGallery] = useState(false);
 
-    const toggleShowCamera = () => {
+    const onShowCamera = () => {
         setShouldShowCamera(!shouldShowCamera);
     }
 
@@ -43,13 +47,15 @@ function EditorComponent(props: EditorComponentProps) {
     }
 
     const onCancelFigureClickHandler = () => {
-        dispatch(deSelectArea, {});
+        props.onDeselectArea();
+        //dispatch(deSelectArea, {});
         setShowShapeObj(false);
     }
 
-    const toggleShowTextArea = () => {
+    const onShowTextArea = () => {
         if (showTextArea) {
-            dispatch(deSelectArea, {});
+            props.onDeselectArea();
+            //dispatch(deSelectArea, {});
         }
         setShowTextArea(!showTextArea);
         setShowShapeObj(false);
@@ -60,7 +66,8 @@ function EditorComponent(props: EditorComponentProps) {
         setShouldResetFigure(true);
         setShowShapeObj(true);
         setFigure(newFigure);
-        dispatch(addFigure, {figureType: newFigure});
+        props.onAddFigure({figureType: newFigure});
+        //dispatch(addFigure, {figureType: newFigure});
         setShowTextArea(false);
     }
     
@@ -68,26 +75,22 @@ function EditorComponent(props: EditorComponentProps) {
         <CanvasContext.Provider value={canvas}>
             <div>
                 <Toolbar 
-                    editor={props.editor}
-                    toggleShowCamera={toggleShowCamera}
-                    toggleShowTextArea={toggleShowTextArea}
+                    onShowCamera={onShowCamera}
+                    onShowTextArea={onShowTextArea}
                     showTextArea={showTextArea}
                     onShowFigureClickHandler={onShowFigureClickHandler}
                     onOpenGalleryHandler={onOpenGalleryHandler}
                 />
-
-                {(props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) &&
-                <SelectedArea
-                    editor={props.editor}
-                />}
+                {(props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) && 
+                 <SelectedArea />
+                }
 
                 {(props.editor.selectedObject && isTextObject(props.editor.selectedObject)) &&
                 <TextObject
-                    editor={props.editor}
-                    toggleShowTextArea={toggleShowTextArea}
+                    onShowTextArea={onShowTextArea}
                 />}
 
-                {(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
+                {/* {(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
                 <ShapeObject
                     editor={props.editor}
                     figure={figure}
@@ -95,41 +98,45 @@ function EditorComponent(props: EditorComponentProps) {
                     shouldResetFigure={shouldResetFigure}
                     onShouldResetFigureHandler={onShouldResetFigureHandler}
                     onCancelFigureClickHandler={onCancelFigureClickHandler}
-                />}
-               
-                
-                 {!shouldShowCamera
+                />} */}
+
+                {!shouldShowCamera
                 ? <Canvas 
                     setCanv={getCanvas}
-                    editor={props.editor}
-                    showTextArea={showTextArea}
                 />
                 : <Video
-                    toggleShowCamera={toggleShowCamera}
+                    onShowCamera={onShowCamera}
                 />}
 
-                {!showTextArea && !showShapeObj && !showGallery &&
-                <SelectingSA 
-                    editor={props.editor}                
-                />
+                {!showTextArea && !showShapeObj && !showGallery && !props.editor.selectedObject && 
+                <SelectingSA />
                 }       
 
                 {showTextArea && !showGallery && !showShapeObj &&
-                <SelectingTextObject
-                    editor={props.editor} 
-                />
+                <SelectingTextObject/>
                 }
-                {showGallery &&
-                    <div>
-                        <Gallery 
-                            onOpenGalleryHandler={onOpenGalleryHandler}
-                        />
-                        <canvas />
-                    </div>
-                }
+                {/* {showGallery &&
+                    <Gallery 
+                        onOpenGalleryHandler={onOpenGalleryHandler}
+                    />
+                } */}
+               
             </div>
         </CanvasContext.Provider>
     )
 }
 
-export default EditorComponent;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+  
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onDeselectArea: () => dispatch(deselectArea()),
+      onAddFigure: (payload: {figureType: Figure}) => dispatch(addFigure(payload))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(EditorComponent);

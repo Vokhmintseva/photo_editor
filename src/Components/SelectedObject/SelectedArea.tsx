@@ -1,13 +1,17 @@
 import React, {useRef, useEffect, useState, useContext}  from 'react';
-import {Editor} from '../../model';
+import { Editor, Point } from '../../model';
 import './SelectedObject.css';
 import {dispatch} from '../../reducer';
-import {isSelectedArea, dropSelection, joinSelectionWithCanvas} from '../../actions';
+import { isSelectedArea } from '../../actions';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { resolve, intention, Intent, setIntention } from '../../intentResolver';
+import { joinSelectionWithCanvas, dropSelection } from '../../store/actions/Actions';
+import { connect } from 'react-redux';
 
 interface SelectedAreaProps {
-    editor: Editor,
+  editor: Editor,
+  onDropSelection: (payload: {where: Point}) => void,
+  onJoinSelectionWithCanvas: () => void
 }
 
 function calculateInitPos (props: SelectedAreaProps, canvasCoords: DOMRect) {
@@ -18,8 +22,6 @@ function calculateInitPos (props: SelectedAreaProps, canvasCoords: DOMRect) {
 }
 
 const SelectedArea = (props: SelectedAreaProps) => {
-    console.log('rendering SelectedArea');
-    
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     const canvasCoords = canvas!.getBoundingClientRect();
 
@@ -34,7 +36,8 @@ const SelectedArea = (props: SelectedAreaProps) => {
         if (intention !== Intent.DroppingSA) return;
         console.log('SA in onMouseDownHandler function');
         if (isSelectedArea(props.editor.selectedObject)) {
-            dispatch(joinSelectionWithCanvas, {});
+            props.onJoinSelectionWithCanvas();
+            //dispatch(joinSelectionWithCanvas, {});
             setIntention(Intent.Nothing);
         }
     }
@@ -79,7 +82,8 @@ const SelectedArea = (props: SelectedAreaProps) => {
         console.log('SA in onMouseUpSAHandler function');
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
-        dispatch(dropSelection, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
+        props.onDropSelection({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
+        //dispatch(dropSelection, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
     }
 
@@ -89,7 +93,6 @@ const SelectedArea = (props: SelectedAreaProps) => {
         document.addEventListener('mousedown', onMouseDownHandler);
         document.addEventListener('mousemove', onMouseMoveSAHandler);
         document.addEventListener('mouseup', onMouseUpSAHandler);
-        //функция сработает когда произойдет следующая перерисовка
         return () => {
             selCanvas.removeEventListener('mousedown', onMouseDownSAHandler);
             document.removeEventListener('mousedown', onMouseDownHandler);
@@ -131,4 +134,17 @@ const SelectedArea = (props: SelectedAreaProps) => {
     ) 
 }
 
-export default SelectedArea;
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+
+function mapDispatchToProps(dispatch: any) {
+    return {
+      onDropSelection: (payload: {where: Point}) => dispatch(dropSelection(payload)),
+      onJoinSelectionWithCanvas: () => dispatch(joinSelectionWithCanvas())
+    }
+  }
+  
+export default connect(mapStateToProps, mapDispatchToProps)(SelectedArea);
