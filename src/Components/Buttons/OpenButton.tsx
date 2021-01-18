@@ -3,6 +3,7 @@ import {Editor} from '../../model';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { addImage } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
+import { addToHistory } from '../../history';
 
 interface OpenButtonProps {
     editor: Editor,
@@ -33,6 +34,8 @@ function OpenButton(props: OpenButtonProps) {
             } else
                 context!.drawImage(image, 0, 0);
             let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
+            console.log('openButton addImage dispatch');
+            addToHistory(props.editor);
             props.onAddImage({newImage: newImgData});
         }
     }

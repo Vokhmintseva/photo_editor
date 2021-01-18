@@ -1,10 +1,13 @@
 import React, {useEffect, useRef, useContext}  from 'react';
 import { dispatch } from '../../reducer';
+import {Editor} from '../../model';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { addImage } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
+import { addToHistory } from '../../history';
 
 interface VideoProps {
+    editor: Editor,
     onShowCamera: () => void,
     onAddImage: (payload: {newImage: ImageData}) => void
 }
@@ -43,6 +46,8 @@ function Video (props: VideoProps) {
         let context = canvas!.getContext('2d');
         context!.drawImage(video, 0, 0);
         let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
+        console.log('dispatch Video addImage');
+        addToHistory(props.editor);
         props.onAddImage({newImage: newImgData});
         stopWebCam();
     }
@@ -68,10 +73,16 @@ function Video (props: VideoProps) {
     )
 }
 
+function mapStateToProps(state: any) {
+    return {
+        editor: state.editorReducer.editor
+    }
+}
+
 function mapDispatchToProps(dispatch: any) {
     return {
       onAddImage: (payload: {newImage: ImageData}) => dispatch(addImage(payload))
     }
   }
   
-export default connect(null, mapDispatchToProps)(Video);
+export default connect(mapStateToProps, mapDispatchToProps)(Video);

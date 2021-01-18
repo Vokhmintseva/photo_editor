@@ -1,14 +1,16 @@
-import React, { useState, useContext, useEffect, useRef } from 'react'
-import { Editor, Figure } from '../../model'
+import React, { useState, useEffect, useRef } from 'react'
+import { Editor } from '../../model'
 import './Toolbar.css';
 import SelectFilter from '../Select/SelectFilter';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import SnapshotButton from '../Buttons/SnapshotButton';
+import UndoButton from '../Buttons/UndoButton';
+import RedoButton from '../Buttons/RedoButton';
 import { isSelectedArea } from '../../actions';
-import { dispatch } from '../../reducer';
 import { deselectArea, crop, cut, createCanvas, applyFilter } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
+import { addToHistory } from '../../history';
 
 interface ToolbarProps {
     editor: Editor,
@@ -34,21 +36,30 @@ function Toolbar(props: ToolbarProps) {
     }
 
     function filterButtonHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        console.log('dispatch Toolbar onApplyFilter');
+        addToHistory(props.editor);
         props.onApplyFilter({filterColor: filter});
     }
     
     function onClearSelectionHandler() {
+        console.log('dispatch Toolbar cut');
+        addToHistory(props.editor);
         props.onCut();
-        props.onDeselectArea();
+        // console.log('dispatch Toolbar deselectArea');
+        // props.onDeselectArea();
     }
 
     function onSelectionCropHandler() {
+        console.log('dispatch Toolbar crop');
+        addToHistory(props.editor);
         props.onCrop();
     }
 
     function onClearAllHandler() {
         let shouldremoveCanvas = window.confirm("Текущий холст будет удален. Вы подтверждаете удаление холста?");
         if (shouldremoveCanvas) {
+            console.log('dispatch Toolbar createCanvas');
+            addToHistory(props.editor);
             props.onCreateCanvas({width: 800, height: 600});
         } 
     }
@@ -74,11 +85,13 @@ function Toolbar(props: ToolbarProps) {
     return (
         <div className='toolbar'>
             <OpenButton />
-            <button onClick={props.onOpenGalleryHandler}>Галерея</button>
+            <button onClick={props.onOpenGalleryHandler} title="Поиск изображений">Галерея</button>
             <SaveButton />
-            <button onClick={onClearAllHandler}>New Canvas</button>
+            <UndoButton />
+            <RedoButton />
+            <button onClick={onClearAllHandler} title="Новый холст">New Canvas</button>
             {select}
-            <button onClick={filterButtonHandler}>Применить фильтр</button>
+            <button onClick={filterButtonHandler} title="Применить фильтр">Применить фильтр</button>
             <SnapshotButton onShowCamera={props.onShowCamera}/>
             {props.editor.selectedObject && isSelectedArea(props.editor.selectedObject) &&
             <div>

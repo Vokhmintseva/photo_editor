@@ -7,6 +7,7 @@ import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { resolve, intention, Intent, setIntention } from '../../intentResolver';
 import { joinSelectionWithCanvas, dropSelection } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
+import { addToHistory } from '../../history';
 
 interface SelectedAreaProps {
   editor: Editor,
@@ -35,8 +36,10 @@ const SelectedArea = (props: SelectedAreaProps) => {
         if (event.clientY < canvasCoords.top) return;
         resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
         if (intention !== Intent.DroppingSA) return;
-        console.log('SA in onMouseDownHandler function');
+        //console.log('SA in onMouseDownHandler function');
         if (isSelectedArea(props.editor.selectedObject)) {
+            console.log('dispatch SelectedArea joinSelectionWithCanvas');
+            addToHistory(props.editor);
             props.onJoinSelectionWithCanvas();
             setIntention(Intent.Nothing);
             props.onShowSelArea(true);
@@ -46,7 +49,7 @@ const SelectedArea = (props: SelectedAreaProps) => {
     function onMouseDownSAHandler(event: any) {
         resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
         if (intention !== Intent.DraggingSA) return;
-        console.log('SA in onMouseDownSAHandler function');
+        //console.log('SA in onMouseDownSAHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
         
@@ -80,13 +83,13 @@ const SelectedArea = (props: SelectedAreaProps) => {
 
     const onMouseUpSAHandler = function (event: any) {
         if (!isMousePressed) return;
-        console.log('SA in onMouseUpSAHandler function');
+        //console.log('SA in onMouseUpSAHandler function');
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
+        console.log('dispatch SelectedArea onDropSelection');
+        //addToHistory(props.editor);
         props.onDropSelection({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
-        
-        
     }
 
     useEffect(() => { 

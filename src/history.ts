@@ -1,18 +1,18 @@
 import { Editor } from './model';
 
-const undoStack: Array<Editor> = []
-const redoStack: Array<Editor> = []
+export const undoStack: Array<Editor> = []
+export const redoStack: Array<Editor> = []
 
-function undo() {
-	const editor: Editor = undoStack.pop()!
-	redoStack.push(editor)
-	return editor
+export function undo() {
+	const editor: Editor = undoStack.pop()!;
+	redoStack.push(editor);
+	return editor;
 }
 
-function redo() {
-	return redoStack.pop()
+export function redo() {
+	return redoStack.pop();
 }
 
-function addToHistory(editor:Editor) {
-	undoStack.push(editor)
+export function addToHistory(editor:Editor) {
+	undoStack.push(editor);
 }

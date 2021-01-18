@@ -10,8 +10,8 @@ export function cleanCanvas(width: number = defaultCanvasWidth, height: number =
 	//crypto.getRandomValues(buffer);
 	for (let i: number = 0; i < pixelArrayLength; i += 4) {
 		bufferArray[i] = 255; 
-		bufferArray[i + 1] = 201;
-		bufferArray[i + 2] = 245;
+		bufferArray[i + 1] = 255;
+		bufferArray[i + 2] = 255;
 		bufferArray[i + 3] = 255;
 	}
 	return new ImageData(new Uint8ClampedArray(bufferArray.buffer), width, height);
@@ -120,8 +120,27 @@ export function removeCanvas(editor: Editor): Editor {
 	}
 }
 
+//получить массив индексов элементов в массиве Unit8ClampedArray канваса для пикселей, попавших в выделенную область
+export function getIndexes(editor: Editor): Array<number> {
+	let arr: Array<number> = [];
+	if (editor.selectedObject !== null) {
+		let startX: number = editor.selectedObject!.position.x;
+		let startY: number = editor.selectedObject!.position.y;
+		let endY: number = startY + editor.selectedObject!.h;
+		let selectionWidth: number = editor.selectedObject!.w; 
+		let k: number = 0;
+		for (let i: number = startY; i < endY; i++) {
+			let startRowIndex: number = getPxArrIndex(editor, {x: startX, y: i});
+			for (let j: number = startRowIndex; j < startRowIndex + selectionWidth * 4; j++) {
+				arr[k] = j;
+				k++;
+			}
+		}
+	}
+	return arr;
+}
+
 export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint: Point}): Editor {
-	
 	return {
 		...editor,
 		selectedObject: {
@@ -135,8 +154,12 @@ export function selectArea(editor: Editor, payload: {startPoint: Point, endPoint
 			h: Math.abs(payload.startPoint.y - payload.endPoint.y),
 			
 		},
-		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)), 
+		//canvas: makeSelectionBeTransparent(editor, getIndexes(editor))
 	}
+}
+
+export function rollEditor(editor: Editor, payload: {newEditor: Editor}): Editor { 
+	return {...payload.newEditor};
 }
 
 export function selectTextArea(editor: Editor, payload: {startPoint: Point, endPoint: Point}): Editor {
@@ -320,27 +343,7 @@ export function getImageDataOfSelectedArea(editor: Editor): ImageData  {
 
 
 
-//получить массив индексов элементов в массиве Unit8ClampedArray канваса для пикселей, попавших в выделенную область
-export function getIndexes(editor: Editor): Array<number> {
-	let arr: Array<number> = [];
 
-	
-	if (editor.selectedObject !== null) {
-		let startX: number = editor.selectedObject!.position.x;
-		let startY: number = editor.selectedObject!.position.y;
-		let endY: number = startY + editor.selectedObject!.h;
-		let selectionWidth: number = editor.selectedObject!.w; 
-		let k: number = 0;
-		for (let i: number = startY; i < endY; i++) {
-			let startRowIndex: number = getPxArrIndex(editor, {x: startX, y: i});
-			for (let j: number = startRowIndex; j < startRowIndex + selectionWidth * 4; j++) {
-				arr[k] = j;
-				k++;
-			}
-		}
-	}
-	return arr;
-}
 
 //сделать прозрачной выделенную область канваса
 export function makeSelectionBeTransparent(editor: Editor, arr: Array<number>): ImageData {
@@ -376,6 +379,7 @@ export function cut(editor: Editor, payload: Object): Editor {
 	return {
 		...editor,
 		canvas: makeSelectionBeTransparent(editor, getIndexes(editor)),
+		selectedObject: null
 	}
 }
 

@@ -13,6 +13,7 @@ import SelectingTextObject from '../SelectedObject/SelectingTextObject';
 import Gallery from '../Gallery/Gallery';
 import { connect } from 'react-redux';
 import { deselectArea, addFigure } from '../../store/actions/Actions';
+import { addToHistory } from '../../history';
 
 interface EditorComponentProps {
     editor: Editor,
@@ -51,12 +52,16 @@ function EditorComponent(props: EditorComponentProps) {
     }
 
     const onCancelFigureClickHandler = () => {
+        console.log('dispatch EditorComponent deselectArea');
+        addToHistory(props.editor);
         props.onDeselectArea();
         setShowShapeObj(false);
     }
 
     const onShowTextArea = () => {
         if (showTextArea) {
+            console.log('dispatch EditorComponent deselectArea');
+            addToHistory(props.editor);
             props.onDeselectArea();
         }
         setShowTextArea(!showTextArea);
@@ -68,6 +73,8 @@ function EditorComponent(props: EditorComponentProps) {
         setShowNewFigure(true);
         setShowShapeObj(true);
         setFigure(newFigure);
+        console.log('dispatch EditorComponent addFigure');
+        addToHistory(props.editor);
         props.onAddFigure({figureType: newFigure});
         setShowTextArea(false);
         setShowGallery(false);
@@ -111,7 +118,8 @@ function EditorComponent(props: EditorComponentProps) {
                     onShowCamera={onShowCamera}
                 />}
 
-                {!showTextArea && !showShapeObj && !showGallery && showSelArea && 
+                {/* {!showTextArea && !showShapeObj && !showGallery && showSelArea &&  */}
+                {!props.editor.selectedObject &&
                 <SelectingSA onShowSelArea={onShowSelArea}/>
                 }       
 

@@ -5,6 +5,7 @@ import { Photo } from 'pexels';
 import './Gallery.css';
 import { addImage } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
+import { addToHistory } from '../../history';
 
 interface PreviewImgProps {
     editor: Editor,
@@ -35,6 +36,8 @@ function PreviewImg(props: PreviewImgProps) {
             } else
                 context!.drawImage(image, 0, 0);
             let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
+            console.log('dispatch PreviewImg addImage');
+            addToHistory(props.editor);
             props.onAddImage({newImage: newImgData});
         }
     }

@@ -157,7 +157,7 @@ function Slider(props: SliderProps) {
                     offset.current = {x: 100, y: 100};
                     break;     
             }
-            //props.onResetSlidersHandler();
+            
         }   
         const sliderElem: HTMLCanvasElement = sliderRef.current!;
         sliderElem.addEventListener('mousedown', onMouseDownSliderHandler);

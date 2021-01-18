@@ -8,6 +8,7 @@ import { setIntention, intention, Intent } from '../../intentResolver';
 import './SelectedObject.css';
 import { connect } from 'react-redux';
 import { deselectArea, joinSelectionWithCanvas, selectTextArea } from '../../store/actions/Actions';
+import { addToHistory } from '../../history';
 
 interface TextAreaProps {
     editor: Editor,
@@ -79,9 +80,9 @@ const SelectingTextObject = (props: TextAreaProps) => {
             const startY = selectionCoords.startY + 2 as number;
             const endX = selectionCoords.endX + 2 as number;
             const endY = selectionCoords.endY + 2 as number;
+            console.log('dispatch SelectingTextObject selectTextArea');
+            addToHistory(props.editor);
             props.onSelectTextArea({startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
-            //dispatch(selectTextArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
-            
         }
         
         setMouseState({
@@ -91,10 +92,10 @@ const SelectingTextObject = (props: TextAreaProps) => {
     }
     
     useEffect(() => {
-        //setIntention(Intent.SelectingTextObj);
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
+            console.log('dispatch SelectingTextObject joinSelectionWithCanvas');
+            addToHistory(props.editor);
             props.onJoinSelectionWithCanvas();
-            //props.onDeselectArea();
         }
     }, []);
 

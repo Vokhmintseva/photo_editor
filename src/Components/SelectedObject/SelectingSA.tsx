@@ -7,6 +7,7 @@ import { CanvasContext } from '../EditorComponent/EditorComponent';
 import { resolve, intention, Intent } from '../../intentResolver';
 import { connect } from 'react-redux';
 import { selectArea, whitenArea } from '../../store/actions/Actions';
+import { addToHistory } from '../../history';
 
 interface SelectingSAProps {
     editor: Editor,
@@ -38,7 +39,7 @@ const SelectingSA = (props: SelectingSAProps) => {
         if (event.clientY < canvasCoords.top) return;
         resolve(editor, {x: event.clientX, y: event.clientY}, canvasCoords);
         if (intention !== Intent.SelectingSA) return;
-        console.log('SA SELECTING onMouseDownSVGHandler');
+        //console.log('SA SELECTING onMouseDownSVGHandler');
         setMouseState({
             ...mouseState,
             down: {
@@ -67,7 +68,7 @@ const SelectingSA = (props: SelectingSAProps) => {
     
     const onMouseUpSVGHandler = function (event: any) {
         if (!mouseState.isMousePressed) return;
-        console.log('SA SELECTING onMouseUpSVGHandler');
+        //console.log('SA SELECTING onMouseUpSVGHandler');
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
@@ -79,7 +80,11 @@ const SelectingSA = (props: SelectingSAProps) => {
             const startY = selectionCoords.startY as number;
             const endX = selectionCoords.endX as number;
             const endY = selectionCoords.endY as number;
+            console.log('dispatch SelectingSA selectArea');
+            addToHistory(props.editor);
             props.onSelectArea({startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
+            console.log('dispatch SelectingSA whitenArea');
+            //addToHistory(props.editor);
             props.onWhitenArea();
             // dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
             // dispatch(whitenArea, {});

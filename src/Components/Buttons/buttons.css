@@ -1,0 +1,13 @@
+.undoBtn {
+    background: url('../../images/undo.png') no-repeat; 
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
+
+.redoBtn {
+    background: url('../../images/redo.png') no-repeat; 
+    width: 25px;
+    height: 25px;
+    background-size: 100%;
+}
