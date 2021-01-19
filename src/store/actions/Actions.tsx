@@ -1,7 +1,7 @@
 //это функции, которые выдают определенный action
 import { SELECT_AREA, WHITEN_AREA, JOIN_SA_WITH_CANVAS, DROP_SA, DESELECT_AREA, ADD_FIGURE, APPLY_FILTER, CUT,
 CROP, CREATE_CANVAS, ADD_IMAGE, RESIZE_EDITOR_OBJ, DROP_TEXT_OBJ, SELECT_TEXT_AREA, DROP_SHAPE_OBJ, SET_FIGURE_BACKGROUND_COLOR,
-SET_FIGURE_BORDER_COLOR, ROLL } from './actionTypes';
+SET_FIGURE_BORDER_COLOR, ROLL, RESIZE } from './actionTypes';
 import { Editor, Point, Figure } from '../../model';
 
 
@@ -129,3 +129,10 @@ export function rollEditor(payload: {newEditor: Editor}) {
         payload: payload
     }
 }    
+
+export function resizeCanvas(payload: {newWidth: number, newHeight: number}) {
+    return {
+        type: RESIZE,
+        payload: payload
+    }
+}   

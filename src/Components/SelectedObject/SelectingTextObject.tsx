@@ -96,7 +96,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
     useEffect(() => {
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
             console.log('dispatch SelectingTextObject joinSelectionWithCanvas');
-            addToHistory(props.editor);
+            //addToHistory(props.editor);
             props.onJoinSelectionWithCanvas();
         }
     }, []);

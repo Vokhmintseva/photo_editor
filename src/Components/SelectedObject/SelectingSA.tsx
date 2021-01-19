@@ -41,7 +41,7 @@ const SelectingSelectedArea = (props: SelectingSAProps) => {
         console.log('SA in onMouseDownHandler function');
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
             console.log('dispatch SelectedArea joinSelectionWithCanvas');
-            addToHistory(props.editor);
+            //addToHistory(props.editor);
             props.onJoinSelectionWithCanvas();
         }
         // const canvasCoords = canvas!.getBoundingClientRect();

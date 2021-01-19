@@ -28,11 +28,11 @@ function calculateInitPos (props: SelectedAreaProps, canvasCoords: DOMRect) {
 const SelectedArea = (props: SelectedAreaProps) => {
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     const canvasCoords = canvas!.getBoundingClientRect();
-
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [offset, setOffset] = useState({x: 0, y: 0});
     const [position, setPosition] = useState(() => {return calculateInitPos(props, canvasCoords)});
     let selCanvasRef = useRef(null);
+
     
     // function onMouseDownHandler(event: any) {
     //     if (event.clientY < canvasCoords.top) return;
@@ -51,7 +51,6 @@ const SelectedArea = (props: SelectedAreaProps) => {
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
         event.preventDefault();
-        
     }
     
     const adjustCoords = function (left: number, top: number): {left: number, top: number} {
@@ -81,16 +80,14 @@ const SelectedArea = (props: SelectedAreaProps) => {
     }
 
     const onMouseUpSAHandler = function (event: any) {
-        
         if (!isMousePressed) return;
         console.log('SA in onMouseUpSAHandler function');
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top});
         console.log('dispatch SelectedArea onDropSelection');
-        //addToHistory(props.editor);
+        addToHistory(props.editor);
         props.onDropSelection({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
-        
     }
 
     useEffect(() => { 

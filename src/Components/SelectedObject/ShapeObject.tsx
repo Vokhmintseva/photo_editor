@@ -7,7 +7,7 @@ import Slider from './Slider';
 import SliderType from './slyderType';
 import { connect } from 'react-redux';
 import { addImage, resizeEditorObj, deselectArea, dropShapeObj, setFigureBackgroundColor, setFigureBorderColor } from '../../store/actions/Actions';
-import { addToHistory } from '../../history';
+import { undoStack, addToHistory } from '../../history';
 import { Intention } from '../../Intentions';
 
 const borderWidth = 2;
@@ -98,7 +98,7 @@ const ShapeObject = (props: ShapeObjProps) => {
         const canvasCoords = canvas!.getBoundingClientRect();
         setPosition({x, y, width, height});
         console.log('dispatch ShapeObject ResizeEditorObj');
-        addToHistory(props.editor);
+        //addToHistory(props.editor);
         props.onResizeEditorObj({newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
@@ -119,7 +119,7 @@ const ShapeObject = (props: ShapeObjProps) => {
             drawFigure(props.figure, context, position, props.editor.selectedObject.borderColor, props.editor.selectedObject.backgroundColor, {x: position.x + strokeWidth / 2, y: position.y - canvasCoords.top + strokeWidth});
             let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
             console.log('dispatch ShapeObject addImage');
-            addToHistory(props.editor);
+            //addToHistory(props.editor);
             props.onAddImage({newImage: newImgData});
             props.onDeselectArea();
         }
@@ -127,20 +127,20 @@ const ShapeObject = (props: ShapeObjProps) => {
     }
 
     const onCancelFigureClicked = () => {
-        addToHistory(props.editor);
+        undoStack.pop();
         props.onDeselectArea();
         props.onSetIntention(Intention.SelectArea);
     }
 
     function onChangeBorderColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
         console.log('dispatch ShapeObject setFigureBorderColor');
-        addToHistory(props.editor);
+        //addToHistory(props.editor);
         props.onSetFigureBorderColor({newColor: event.target.value});
     }
 
     function onChangeBackgroundColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
         console.log('dispatch ShapeObject setFigureBackgroundColor');
-        addToHistory(props.editor);
+        //addToHistory(props.editor);
         props.onSetFigureBackgroundColor({newColor: event.target.value});
     }
  
@@ -170,7 +170,7 @@ const ShapeObject = (props: ShapeObjProps) => {
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, selCanvasCoords, canvasCoords);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
         console.log('dispatch ShapeObject dropShapeObj');
-        addToHistory(props.editor);
+        //addToHistory(props.editor);
         props.onDropShapeObj({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
     }

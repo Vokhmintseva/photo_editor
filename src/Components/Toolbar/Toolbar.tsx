@@ -6,6 +6,7 @@ import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
 import UndoButton from '../Buttons/UndoButton';
 import RedoButton from '../Buttons/RedoButton';
+import ResizeBtn from '../Buttons/ResizeBtn';
 import { isSelectedArea, isShapeObject } from '../../actions';
 import { deselectArea, crop, cut, createCanvas, applyFilter, addFigure } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
@@ -95,19 +96,19 @@ function Toolbar(props: ToolbarProps) {
             <OpenButton />
             <button onClick={e => {props.onSetIntention(Intention.BrowseRemoteGallery); props.onDeselectArea();}} title="Поиск изображений" className="remoteImgBtn" />
             <SaveButton />
-            <UndoButton />
-            <RedoButton />
+            <UndoButton onSetIntention={props.onSetIntention}/>
+            <RedoButton onSetIntention={props.onSetIntention}/>
             <button onClick={onClearAllHandler} title="Новый холст" className="newCanvas_btn"/>
             {select}
             <button onClick={filterButtonHandler} title="Применить фильтр" className="filterBtn"/>
-            <button onClick={e => props.onSetIntention(Intention.TakePhoto)} className="webCamBtn" title="Снимок с веб-камеры"/>
+            <button onClick={e => {props.onSetIntention(Intention.TakePhoto); props.onDeselectArea()}} className="webCamBtn" title="Снимок с веб-камеры"/>
             <button 
                 ref={showTextBtnRef}
                 title="Текст"
                 onClick={e => props.onSetIntention(Intention.SelectTextObj)}
                 className="textBtn"
             />
-            {!(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
+            {!(props.editor.selectedObject && (isShapeObject(props.editor.selectedObject) || isSelectedArea(props.editor.selectedObject))) &&
             <div className="ShapeBar">
                 <button 
                     className="circleBtn"

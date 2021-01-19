@@ -10,7 +10,7 @@ import Slider from './Slider';
 import SliderType from './slyderType';
 import { connect } from 'react-redux';
 import { deselectArea, addImage, resizeEditorObj, dropTextObj } from '../../store/actions/Actions';
-import { addToHistory } from '../../history';
+import { undoStack, addToHistory } from '../../history';
 import { Intention } from '../../Intentions';
 
 const fonts = ['Roboto', 'Open Sans', 'Montserrat', 'Roboto Condensed', 'Source Sans Pro',
@@ -155,7 +155,7 @@ const TextObject = (props: TextObjProps) => {
         const canvasCoords = canvas!.getBoundingClientRect();
         setPosition({x, y, width, height});
         console.log('dispatch TextObject resizeEditorObj');
-        addToHistory(props.editor);
+        //addToHistory(props.editor);
         props.onResizeEditorObj({newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
@@ -192,13 +192,14 @@ const TextObject = (props: TextObjProps) => {
         wrapText(ctx!, text, position.x, position.y - canvasCoords.top + fontSize, props.editor.selectedObject!.w, lineHeight);
         let newImgData = ctx!.getImageData(0, 0, canvas!.width, canvas!.height);
         console.log('dispatch TextObject addImage');
-        addToHistory(props.editor);
+        //addToHistory(props.editor);
         props.onAddImage({newImage: newImgData});
         props.onSetIntention(Intention.SelectArea);
         props.onDeselectArea();
     }
     
     function onCancelTextSelectionClicked(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        undoStack.pop();
         props.onDeselectArea();
         props.onSetIntention(Intention.SelectArea);
     }
@@ -235,7 +236,7 @@ const TextObject = (props: TextObjProps) => {
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, textAreaCoords, canvasCoords);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
         console.log('dispatch TextObject dropTextObj');
-        addToHistory(props.editor);
+        //addToHistory(props.editor);
         props.onDropTextObj({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         //dispatch(dropTextObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);

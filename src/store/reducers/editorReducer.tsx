@@ -1,10 +1,10 @@
 import { SELECT_AREA, WHITEN_AREA, JOIN_SA_WITH_CANVAS, DROP_SA, DESELECT_AREA, ADD_FIGURE, APPLY_FILTER, CUT,
 CROP, CREATE_CANVAS, ADD_IMAGE, RESIZE_EDITOR_OBJ, DROP_TEXT_OBJ, SELECT_TEXT_AREA, SET_FIGURE_BACKGROUND_COLOR,
-SET_FIGURE_BORDER_COLOR, ROLL } from '../actions/actionTypes';
+SET_FIGURE_BORDER_COLOR, ROLL, RESIZE } from '../actions/actionTypes';
 import { Point, Editor } from '../../model';
 import { selectArea, whitenArea, joinSelectionWithCanvas, dropSelection, cleanCanvas, deSelectArea, addFigure,
 applyFilter, cut, crop, createCanvas, addImage, resizeEditorObj, dropTextObj, selectTextArea, setFigureBackgroundColor,
-setFigureBorderColor, rollEditor } from '../../actions';
+setFigureBorderColor, rollEditor, resizeCanvas } from '../../actions';
 
 let editor: Editor = {
     //canvas: {} as ImageData,
@@ -85,7 +85,11 @@ export default function editorReducer (state = initialState, action: any) {
         case ROLL:
             return {
                 editor: rollEditor(state.editor, action.payload)
-            }                                                                         
+            }  
+        case RESIZE:
+            return {
+                editor: rollEditor(state.editor, action.payload)
+            }                                                                                
         default:
             return state  
     }
