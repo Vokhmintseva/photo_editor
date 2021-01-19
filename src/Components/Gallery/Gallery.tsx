@@ -2,11 +2,12 @@ import React, { useState, useEffect }  from 'react';
 import { createClient, PhotosWithTotalResults, ErrorResponse } from 'pexels';
 import './Gallery.css';
 import PreviewImg from './PreviewImg';
+import { Intention } from '../../Intentions';
 
 const client = createClient('563492ad6f91700001000001f32c0c635f2c46e4badcbd278b68e104');
 
 interface GalleryProps {
-    onOpenGalleryHandler: () => void,
+    onSetIntention: (intent: Intention) => void,
 }
 
 function Gallery(props: GalleryProps) {
@@ -57,7 +58,7 @@ function Gallery(props: GalleryProps) {
                 onChange={e => {setQuery(e.target.value); setPage(1);}}
             ></input>
             <button onClick={showPreviews} className="pickImgContainer__searchButton">Найти</button>
-            <div onClick={props.onOpenGalleryHandler} className="pickImgContainer__closeButton" />
+            <div onClick={e => props.onSetIntention(Intention.SelectArea)} className="pickImgContainer__closeButton" />
             <div className="pickImgContainer__previewsContainer">
                 {previewsArr}
             </div>

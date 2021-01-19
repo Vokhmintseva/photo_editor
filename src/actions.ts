@@ -87,7 +87,7 @@ export function addImage(editor: Editor, payload: {newImage: ImageData}): Editor
 	return {
 		...editor,
 		canvas: payload.newImage,
-		selectedObject: null,
+		//selectedObject: null,
 	}
 }
 

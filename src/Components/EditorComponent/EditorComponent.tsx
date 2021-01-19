@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import { Figure, Editor } from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
 import { isSelectedArea, isTextObject, isShapeObject } from '../../actions';
@@ -8,129 +8,86 @@ import TextObject from '../SelectedObject/TextObject';
 import ShapeObject from '../SelectedObject/ShapeObject';
 import Canvas from '../Canvas/Canvas';
 import './EditorComponent.css';
-import SelectingSA from '../SelectedObject/SelectingSA';
+import SelectingSelectedArea from '../SelectedObject/SelectingSA';
 import SelectingTextObject from '../SelectedObject/SelectingTextObject';
 import Gallery from '../Gallery/Gallery';
 import { connect } from 'react-redux';
 import { deselectArea, addFigure } from '../../store/actions/Actions';
 import { addToHistory } from '../../history';
+import { Intention } from '../../Intentions';
 
 interface EditorComponentProps {
     editor: Editor,
     onDeselectArea: () => void,
-    onAddFigure: (payload: {figureType: Figure}) => void
+    
 }
 
 export const CanvasContext = React.createContext(null);
 
 function EditorComponent(props: EditorComponentProps) {
-    const [showCamera, setShowCamera] = useState(false);
-    const [showTextArea, setShowTextArea] = useState(false);
-    const [showShapeObj, setShowShapeObj] = useState(false);
-    const [showSelArea, setShowSelArea] = useState(true);
     const [figure, setFigure] = useState(Figure.circle);
     const [showNewFigure, setShowNewFigure] = useState(false);
-    const [showGallery, setShowGallery] = useState(false);
 
+    const [intention, setIntention] = useState(Intention.SelectArea);
+    
     const [canvas, setCanvas] = useState(null);
     const getCanvas = (ref: any) => setCanvas(ref.current!);
 
-    const onShowCamera = () => {
-        setShowCamera(!showCamera);
-    }
-
-    const onShowSelArea = (should: boolean) => {
-        setShowSelArea(should);
+    const onSetIntention = (intent: Intention) => {
+        setIntention(intent);
     }
 
     function onShowNewFigure(should: boolean) {
         setShowNewFigure(should);
     }
 
-    const onOpenGalleryHandler = () => {
-        setShowGallery(!showGallery);
-    }
-
-    const onCancelFigureClickHandler = () => {
-        console.log('dispatch EditorComponent deselectArea');
-        addToHistory(props.editor);
-        props.onDeselectArea();
-        setShowShapeObj(false);
-    }
-
-    const onShowTextArea = () => {
-        if (showTextArea) {
-            console.log('dispatch EditorComponent deselectArea');
-            addToHistory(props.editor);
-            props.onDeselectArea();
-        }
-        setShowTextArea(!showTextArea);
-        setShowShapeObj(false);
-    }
-
-    const onShowFigureClickHandler = (event: any) => {
-        const newFigure: Figure = event.target.id;
-        setShowNewFigure(true);
-        setShowShapeObj(true);
+    function onSetFigure(newFigure: Figure) {
         setFigure(newFigure);
-        console.log('dispatch EditorComponent addFigure');
-        addToHistory(props.editor);
-        props.onAddFigure({figureType: newFigure});
-        setShowTextArea(false);
-        setShowGallery(false);
-        setShowTextArea(false);
+        //setShowNewFigure(true);
     }
-    
+
+
     return (
         <CanvasContext.Provider value={canvas}>
             <div>
+                {intention != Intention.TakePhoto &&
                 <Toolbar 
-                    onShowCamera={onShowCamera}
-                    onShowTextArea={onShowTextArea}
-                    showTextArea={showTextArea}
-                    onShowFigureClickHandler={onShowFigureClickHandler}
-                    onOpenGalleryHandler={onOpenGalleryHandler}
+                    onSetFigure={onSetFigure}
+                    onSetIntention={onSetIntention}
                 />
+                }
                 
                 {(props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) && 
-                 <SelectedArea onShowSelArea={onShowSelArea}/>
+                 <SelectedArea />
                 }
 
                 {(props.editor.selectedObject && isTextObject(props.editor.selectedObject)) &&
-                <TextObject
-                    onShowTextArea={onShowTextArea}
-                />}
+                <TextObject onSetIntention={onSetIntention} />
+                }
 
                 {(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
                 <ShapeObject
                     figure={figure}
-                    onShowFigureClickHandler={onShowFigureClickHandler}
                     showNewFigure={showNewFigure}
                     onShowNewFigure={onShowNewFigure}
-                    onCancelFigureClickHandler={onCancelFigureClickHandler}
+                    onSetIntention={onSetIntention}
                 />}
 
-                {!showCamera
-                ? <Canvas 
-                    setCanv={getCanvas}
-                />
-                : <Video
-                    onShowCamera={onShowCamera}
-                />}
+                {intention == Intention.TakePhoto
+                ? <Video onSetIntention={onSetIntention} />
+                : <Canvas setCanv={getCanvas} />
+                }
 
-                {/* {!showTextArea && !showShapeObj && !showGallery && showSelArea &&  */}
-                {!props.editor.selectedObject &&
-                <SelectingSA onShowSelArea={onShowSelArea}/>
+                {(intention == Intention.SelectArea) &&
+                <SelectingSelectedArea />
                 }       
 
-                {showTextArea && !showGallery && !showShapeObj &&
-                <SelectingTextObject/>
+                {intention == Intention.SelectTextObj &&
+                <SelectingTextObject onSetIntention={onSetIntention}/>
                 }
                 
-                {showGallery &&
-                <Gallery 
-                    onOpenGalleryHandler={onOpenGalleryHandler}
-                />
+                {intention == Intention.BrowseRemoteGallery &&
+                <Gallery onSetIntention={onSetIntention} />
                 }
                
             </div>

@@ -1,20 +1,21 @@
 import React, { useState, useRef, useEffect, useContext }  from 'react';
 import { Editor, Point } from '../../model';
-import {dispatch} from '../../reducer';
 import { isSelectedArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
-import { setIntention, intention, Intent } from '../../intentResolver';
+//import { setIntention, intention, Intent } from '../../intentResolver';
 import './SelectedObject.css';
 import { connect } from 'react-redux';
 import { deselectArea, joinSelectionWithCanvas, selectTextArea } from '../../store/actions/Actions';
 import { addToHistory } from '../../history';
+import { Intention } from '../../Intentions';
 
 interface TextAreaProps {
     editor: Editor,
     onDeselectArea: () => void,
     onSelectTextArea: (payload: {startPoint: Point, endPoint: Point}) => void,
-    onJoinSelectionWithCanvas: () => void
+    onJoinSelectionWithCanvas: () => void,
+    onSetIntention: (intent: Intention) => void
 }
 
 const SelectingTextObject = (props: TextAreaProps) => {
@@ -33,7 +34,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
         }, 
     });
         
-    function onMouseDownSVGHandler(event: any) {
+    function onMouseDownHandler(event: any) {
         if (props.editor.selectedObject) return;
         const canvasCoords = canvas!.getBoundingClientRect();
         if (event.clientY < canvasCoords.top) return;
@@ -53,7 +54,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
         })
     }
     
-    const onMouseMoveSVGHandler = function (event: any) {
+    const onMouseMoveHandler = function (event: any) {
         if (mouseState.isMousePressed) {
             setMouseState({
                 ...mouseState,
@@ -65,7 +66,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
         }
     }
     
-    const onMouseUpSVGHandler = function (event: any) {
+    const onMouseUpHandler = function (event: any) {
         if (!mouseState.isMousePressed) return;
         console.log('TEXT SELECTING onMouseUpSVGHandler');
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
@@ -89,6 +90,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
             ...mouseState,
             isMousePressed: false,
         });
+        props.onSetIntention(Intention.HandleSelectedObject);
     }
     
     useEffect(() => {
@@ -103,9 +105,9 @@ const SelectingTextObject = (props: TextAreaProps) => {
         if (!canvas) return;
         
         const canvasCoords = canvas!.getBoundingClientRect();
-        document.addEventListener('mousedown', onMouseDownSVGHandler);
-        document.addEventListener('mousemove', onMouseMoveSVGHandler);
-        document.addEventListener('mouseup', onMouseUpSVGHandler);
+        document.addEventListener('mousedown', onMouseDownHandler);
+        document.addEventListener('mousemove', onMouseMoveHandler);
+        document.addEventListener('mouseup', onMouseUpHandler);
         const adjustedSVGcoords = transform(
             { x: mouseState.down.x, y: mouseState.down.y},
             { x: mouseState.current.x, y: mouseState.current.y},
@@ -121,9 +123,9 @@ const SelectingTextObject = (props: TextAreaProps) => {
     
         //функция сработает когда произойдет следующая перерисовка
         return () => {
-            document.removeEventListener('mousedown', onMouseDownSVGHandler);
-            document.removeEventListener('mousemove', onMouseMoveSVGHandler);
-            document.removeEventListener('mouseup', onMouseUpSVGHandler);
+            document.removeEventListener('mousedown', onMouseDownHandler);
+            document.removeEventListener('mousemove', onMouseMoveHandler);
+            document.removeEventListener('mouseup', onMouseUpHandler);
             
         };
     });

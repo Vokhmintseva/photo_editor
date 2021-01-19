@@ -1,33 +1,33 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Editor } from '../../model'
+import React, { useState, useLayoutEffect, useRef } from 'react'
+import { Editor, Figure } from '../../model'
 import './Toolbar.css';
 import SelectFilter from '../Select/SelectFilter';
 import OpenButton from '../Buttons/OpenButton';
 import SaveButton from '../Buttons/SaveButton';
-import SnapshotButton from '../Buttons/SnapshotButton';
 import UndoButton from '../Buttons/UndoButton';
 import RedoButton from '../Buttons/RedoButton';
-import { isSelectedArea } from '../../actions';
-import { deselectArea, crop, cut, createCanvas, applyFilter } from '../../store/actions/Actions';
+import { isSelectedArea, isShapeObject } from '../../actions';
+import { deselectArea, crop, cut, createCanvas, applyFilter, addFigure } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
 import { addToHistory } from '../../history';
+import { Intention } from '../../Intentions';
 
 interface ToolbarProps {
     editor: Editor,
-    onShowCamera: () => void,
-    onShowTextArea: () => void,
-    showTextArea: Boolean,
-    onShowFigureClickHandler: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
-    onOpenGalleryHandler: () => void,
+    //onShowFigureClickHandler: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
+    //onShowNewFigure: (should: boolean) => void,
     onDeselectArea: () => void,
     onApplyFilter: (payload: {filterColor: string}) => void,
     onCut: () => void,
     onCrop: () => void,
-    onCreateCanvas: (payload: {width: number, height: number}) => void
+    onCreateCanvas: (payload: {width: number, height: number}) => void,
+    onSetIntention: (intent: Intention) => void,
+    onSetFigure: (figure: Figure) => void,
+    onAddFigure: (payload: {figureType: Figure}) => void
 }
 
 function Toolbar(props: ToolbarProps) {
-      
+    let toolbarRef = useRef(null);
     let showTextBtnRef = useRef(null);
     const [filter, setFilter] = useState("grey");
         
@@ -45,8 +45,6 @@ function Toolbar(props: ToolbarProps) {
         console.log('dispatch Toolbar cut');
         addToHistory(props.editor);
         props.onCut();
-        // console.log('dispatch Toolbar deselectArea');
-        // props.onDeselectArea();
     }
 
     function onSelectionCropHandler() {
@@ -61,7 +59,17 @@ function Toolbar(props: ToolbarProps) {
             console.log('dispatch Toolbar createCanvas');
             addToHistory(props.editor);
             props.onCreateCanvas({width: 800, height: 600});
+            props.onSetIntention(Intention.SelectArea);
         } 
+    }
+
+    const onFigureClicked = (event: any) => {
+        const newFigure: Figure = event.target.id;
+        props.onSetFigure(newFigure);
+        props.onSetIntention(Intention.HandleSelectedObject);
+        console.log('dispatch EditorComponent addFigure');
+        addToHistory(props.editor);
+        props.onAddFigure({figureType: newFigure});
     }
 
     const select = <SelectFilter
@@ -69,61 +77,64 @@ function Toolbar(props: ToolbarProps) {
         value={filter}
         onChange={selectFilterHandler}
         options={[
-            {text: "grey", value: "grey"},
-            {text: "red", value: "red"},
-            {text: "green", value: "green"},
-            {text: "blue", value: "blue"},
+            {text: "серый", value: "grey"},
+            {text: "красный", value: "red"},
+            {text: "зеленый", value: "green"},
+            {text: "синий", value: "blue"},
         ]}
     />
     //let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
 
-    useEffect(() => {
-        const showTextBtn: HTMLCanvasElement = showTextBtnRef.current!;
-        showTextBtn.style.backgroundColor = props.showTextArea ? '#F953BC' : '#FFFFFF';
+    useLayoutEffect(() => {
+        const toolbar: HTMLCanvasElement = toolbarRef.current!;
+        toolbar.style.width = props.editor.canvas.width + 'px';
     })
 
     return (
-        <div className='toolbar'>
+        <div className='toolbar' ref={toolbarRef}>
             <OpenButton />
-            <button onClick={props.onOpenGalleryHandler} title="Поиск изображений">Галерея</button>
+            <button onClick={e => {props.onSetIntention(Intention.BrowseRemoteGallery); props.onDeselectArea();}} title="Поиск изображений" className="remoteImgBtn" />
             <SaveButton />
             <UndoButton />
             <RedoButton />
-            <button onClick={onClearAllHandler} title="Новый холст">New Canvas</button>
+            <button onClick={onClearAllHandler} title="Новый холст" className="newCanvas_btn"/>
             {select}
-            <button onClick={filterButtonHandler} title="Применить фильтр">Применить фильтр</button>
-            <SnapshotButton onShowCamera={props.onShowCamera}/>
-            {props.editor.selectedObject && isSelectedArea(props.editor.selectedObject) &&
-            <div>
-            <button onClick={onClearSelectionHandler}>Cut</button>
-            <button onClick={onSelectionCropHandler}>Crop</button>
-            </div>
-            }
+            <button onClick={filterButtonHandler} title="Применить фильтр" className="filterBtn"/>
+            <button onClick={e => props.onSetIntention(Intention.TakePhoto)} className="webCamBtn" title="Снимок с веб-камеры"/>
             <button 
                 ref={showTextBtnRef}
                 title="Текст"
-                onClick={props.onShowTextArea}
-            >A</button>
+                onClick={e => props.onSetIntention(Intention.SelectTextObj)}
+                className="textBtn"
+            />
+            {!(props.editor.selectedObject && isShapeObject(props.editor.selectedObject)) &&
             <div className="ShapeBar">
                 <button 
                     className="circleBtn"
                     title="Круг"
                     id="circle"
-                    onClick={props.onShowFigureClickHandler}
+                    onClick={onFigureClicked}
                 ></button>
                 <button 
                     className="rectangleBtn"
                     title="Прямоугольник"
                     id="rectangle"
-                    onClick={props.onShowFigureClickHandler}
+                    onClick={onFigureClicked}
                 ></button>
                 <button 
                     className="triangleBtn"
                     title="Треугольник"
                     id="triangle"
-                    onClick={props.onShowFigureClickHandler}
+                    onClick={onFigureClicked}
                 ></button>
+            </div>  
+            }
+            {props.editor.selectedObject && isSelectedArea(props.editor.selectedObject) &&
+            <div>
+            <button onClick={onClearSelectionHandler} className="cutBtn" />
+            <button onClick={onSelectionCropHandler} className="cropBtn" />
             </div>
+            }
         </div>
     )
 }
@@ -140,7 +151,8 @@ function mapDispatchToProps(dispatch: any) {
       onApplyFilter: (payload: {filterColor: string}) => dispatch(applyFilter(payload)),
       onCut: () => dispatch(cut()),
       onCrop: () => dispatch(crop()),
-      onCreateCanvas: (payload: {width: number, height: number}) => dispatch(createCanvas(payload))
+      onCreateCanvas: (payload: {width: number, height: number}) => dispatch(createCanvas(payload)),
+      onAddFigure: (payload: {figureType: Figure}) => dispatch(addFigure(payload)),
     }
   }
   

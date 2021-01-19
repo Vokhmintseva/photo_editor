@@ -13,11 +13,12 @@ const SelectFontFamily = (props: SelectFontFamilyProps) => {
 
     return (
         <div className="">
-            <label htmlFor={htmlFor}>{props.label}</label>
+            <label htmlFor={htmlFor} className="textbar__fontLabel">{props.label}</label>
             <select
                 id={htmlFor}
                 value={props.value}
                 onChange={props.onChange}
+                className="textbar__fontSelect"
             >
                 {props.options.map((option: any, index: any) => {
                     return (

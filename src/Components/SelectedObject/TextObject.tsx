@@ -1,10 +1,9 @@
-import React, { useRef, useEffect, useState, useContext }  from 'react';
+import React, { useRef, useEffect, useState, useContext, useLayoutEffect }  from 'react';
 import { Editor, Point } from '../../model';
 import './SelectedObject.css';
-import { dispatch } from '../../reducer';
 import { isTextObject } from '../../actions';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
-import { resolve, intention, Intent, setIntention } from '../../intentResolver';
+//import { resolve, intention, Intent, setIntention } from '../../intentResolver';
 import SelectFontFamily from '../Select/SelectFontFamily';
 import SelectFontSize from '../Select/SelectFontSize';
 import Slider from './Slider';
@@ -12,17 +11,19 @@ import SliderType from './slyderType';
 import { connect } from 'react-redux';
 import { deselectArea, addImage, resizeEditorObj, dropTextObj } from '../../store/actions/Actions';
 import { addToHistory } from '../../history';
+import { Intention } from '../../Intentions';
 
 const fonts = ['Roboto', 'Open Sans', 'Montserrat', 'Roboto Condensed', 'Source Sans Pro',
 'Oswald', 'Merriweather', 'Noto Sans', 'Yanone Kaffeesatz', 'Caveat'];
 
 interface TextObjProps {
     editor: Editor,
-    onShowTextArea: () => void,
+    //onShowTextArea: () => void,
     onResizeEditorObj: (payload: {newPoint: Point, newWidth: number, newHeight: number}) => void,
     onDropTextObj: (payload: {where: Point}) => void,
     onAddImage: (payload: {newImage: ImageData}) => void,
     onDeselectArea: () => void,
+    onSetIntention: (intent: Intention) => void,
 }
 
 function getInitColor (editor: Editor) {
@@ -111,7 +112,7 @@ const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRec
 }
 
 const TextObject = (props: TextObjProps) => {
-
+    let textbarRef = useRef(null);   
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [offset, setOffset] = useState({x: 0, y: 0});
@@ -182,7 +183,7 @@ const TextObject = (props: TextObjProps) => {
         fontStyle == 'normal' ? setFontStyle('italic') : setFontStyle('normal');
     }
 
-    function onApplyTextSelectionHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    function onApplyTextSelectionClicked(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
         var lineHeight = 1.2 * fontSize;
         var ctx = canvas!.getContext("2d");
         const canvasCoords = canvas!.getBoundingClientRect();
@@ -193,9 +194,15 @@ const TextObject = (props: TextObjProps) => {
         console.log('dispatch TextObject addImage');
         addToHistory(props.editor);
         props.onAddImage({newImage: newImgData});
-        //props.onDeselectArea();
+        props.onSetIntention(Intention.SelectArea);
+        props.onDeselectArea();
     }
     
+    function onCancelTextSelectionClicked(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+        props.onDeselectArea();
+        props.onSetIntention(Intention.SelectArea);
+    }
+
     function onMouseDownTextObjHandler(event: any) {
         //const canvasCoords = canvas!.getBoundingClientRect();
         // resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
@@ -257,17 +264,22 @@ const TextObject = (props: TextObjProps) => {
         });
     }, []);
  
+    useLayoutEffect(() => {
+        const canvasCoords: DOMRect = canvas!.getBoundingClientRect();
+        const textbar: HTMLCanvasElement = textbarRef.current!;
+        textbar.style.top = canvasCoords.top + 'px';
+        textbar.style.left = canvasCoords.width + 'px';
+    })
+
     return (
         <div>
-            <div className="textBar">
-                <div>
-                    <label>Цвет</label>
+            <div className="textbar" ref={textbarRef}>
+                <div style={{margin: '5px'}}>
+                    <label className="textbar__colorLabel">Цвет</label>
                     <input
                         type='color'
                         onChange={onChangeTextColorHandler}
                     ></input>
-                </div>
-                <div>
                     <button
                         className="boldFontButtton"
                         onClick={onBoldFontButttonHandler}
@@ -285,16 +297,16 @@ const TextObject = (props: TextObjProps) => {
                 <div>
                     {selectFontSize}
                 </div>
-                <div>
+                <div className="textBar__buttons">
                     <button 
                         className="applyBtn"
-                        onClick={onApplyTextSelectionHandler}
+                        onClick={onApplyTextSelectionClicked}
                         title="Добавить текст"
                     >    
                     </button>
                     <button 
                         className="abolishBtn"
-                        onClick={props.onShowTextArea}
+                        onClick={onCancelTextSelectionClicked}
                         title="Отмена"></button>
                 </div>
             </div>

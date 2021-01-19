@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useContext }  from 'react';
+import React, { useRef, useEffect, useState, useContext, useLayoutEffect }  from 'react';
 import { Editor, Figure, Point } from '../../model';
 import './SelectedObject.css';
 import { isShapeObject } from '../../actions';
@@ -8,6 +8,7 @@ import SliderType from './slyderType';
 import { connect } from 'react-redux';
 import { addImage, resizeEditorObj, deselectArea, dropShapeObj, setFigureBackgroundColor, setFigureBorderColor } from '../../store/actions/Actions';
 import { addToHistory } from '../../history';
+import { Intention } from '../../Intentions';
 
 const borderWidth = 2;
 const strokeWidth = 2;
@@ -15,16 +16,16 @@ const strokeWidth = 2;
 interface ShapeObjProps {
     editor: Editor,
     figure: Figure,
-    onShowFigureClickHandler: (event: any) => void,
+    //onShowFigureClickHandler: (event: any) => void,
     showNewFigure: boolean,
     onShowNewFigure: (should: boolean) => void,
-    onCancelFigureClickHandler: () => void,
     onResizeEditorObj: (payload: {newPoint: Point, newWidth: number, newHeight: number}) => void,
     onDropShapeObj: (payload: {where: Point}) => void,
     onAddImage: (payload: {newImage: ImageData}) => void,
     onDeselectArea: () => void,
     onSetFigureBackgroundColor: (payload: {newColor: string}) => void,
-    onSetFigureBorderColor: (payload: {newColor: string}) => void
+    onSetFigureBorderColor: (payload: {newColor: string}) => void,
+    onSetIntention: (intent: Intention) => void,
 }
 const adjustCoords = function (left: number, top: number, textAreaCoords: DOMRect, canvasCoords: DOMRect): {left: number, top: number} {
     if (left < canvasCoords.left) {
@@ -90,14 +91,14 @@ const ShapeObject = (props: ShapeObjProps) => {
     const [isMousePressed, setIsMousePressed] = useState(false);
     const [offset, setOffset] = useState({x: 0, y: 0});
     const [position, setPosition] = useState(() => calculateInitPos(props.editor, canvasCoords));
-        
+    let shapebarRef = useRef(null);   
     let canvasRef = useRef(null);
   
     function onChangeSize(x: number, y: number, width: number, height: number) {
         const canvasCoords = canvas!.getBoundingClientRect();
         setPosition({x, y, width, height});
         console.log('dispatch ShapeObject ResizeEditorObj');
-        //addToHistory(props.editor);
+        addToHistory(props.editor);
         props.onResizeEditorObj({newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
@@ -110,7 +111,7 @@ const ShapeObject = (props: ShapeObjProps) => {
             height: 100});
     }
 
-    function onApplyShapeSelectionHandler(event: any) {
+    function onApplyShapeSelectionClicked(event: any) {
         const context = canvas!.getContext("2d")!;
         const canvasCoords = canvas!.getBoundingClientRect();
 
@@ -120,19 +121,26 @@ const ShapeObject = (props: ShapeObjProps) => {
             console.log('dispatch ShapeObject addImage');
             addToHistory(props.editor);
             props.onAddImage({newImage: newImgData});
-            props.onCancelFigureClickHandler();
+            props.onDeselectArea();
         }
+        props.onSetIntention(Intention.SelectArea);
+    }
+
+    const onCancelFigureClicked = () => {
+        addToHistory(props.editor);
+        props.onDeselectArea();
+        props.onSetIntention(Intention.SelectArea);
     }
 
     function onChangeBorderColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
         console.log('dispatch ShapeObject setFigureBorderColor');
-        //addToHistory(props.editor);
+        addToHistory(props.editor);
         props.onSetFigureBorderColor({newColor: event.target.value});
     }
 
     function onChangeBackgroundColorHandler(event: React.ChangeEvent<HTMLInputElement>) {
         console.log('dispatch ShapeObject setFigureBackgroundColor');
-        //addToHistory(props.editor);
+        addToHistory(props.editor);
         props.onSetFigureBackgroundColor({newColor: event.target.value});
     }
  
@@ -198,34 +206,42 @@ const ShapeObject = (props: ShapeObjProps) => {
             height: props.editor.selectedObject!.h,
         });
     }, []);
+
+    useLayoutEffect(() => {
+        const canvasCoords: DOMRect = canvas!.getBoundingClientRect();
+        const shapebar: HTMLCanvasElement = shapebarRef.current!;
+        shapebar.style.top = canvasCoords.top + 'px';
+        shapebar.style.left = canvasCoords.width + 'px';
+    })
  
     return (
         <div>
-            <div className="shapeBar">
+            <div className="shapeBar" ref={shapebarRef}>
                 <div>
-                    <label>Граница</label>
-                    <input
+                    <label className="shapebar__borderLabel">Граница</label>
+                    <input className="shapebar__input"
                         type='color'
                         onChange={onChangeBorderColorHandler}
                     ></input>
                 </div>
                 <div>
-                    <label>Фон</label>
+                    <label className="shapebar__fillLabel">Фон</label>
                     <input
                         type='color'
                         onChange={onChangeBackgroundColorHandler}
+                        className="shapebar__input"
                     ></input>
                 </div>
-                <div>
+                <div className="shapeBar__buttons">
                     <button 
                         className="applyBtn"
-                        onClick={onApplyShapeSelectionHandler}
-                        title="Добавить текст"
+                        onClick={onApplyShapeSelectionClicked}
+                        title="Применить"
                     >    
                     </button>
                     <button 
                         className="abolishBtn"
-                        onClick={props.onCancelFigureClickHandler}
+                        onClick={onCancelFigureClicked}
                         title="Отмена"></button>
                 </div>
             </div>    

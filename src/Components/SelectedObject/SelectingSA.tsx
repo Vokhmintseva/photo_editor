@@ -1,23 +1,24 @@
-import React, { useState, useRef, useEffect, useContext}  from 'react';
+import React, { useState, useRef, useEffect, useContext }  from 'react';
 import { Editor, Point } from '../../model';
-import { dispatch, editor } from '../../reducer';
-//import { selectArea, whitenArea } from '../../actions';
+import { isSelectedArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
-import { resolve, intention, Intent } from '../../intentResolver';
+//import { resolve, intention, Intent } from '../../intentResolver';
 import { connect } from 'react-redux';
-import { selectArea, whitenArea } from '../../store/actions/Actions';
+import { selectArea, whitenArea, joinSelectionWithCanvas } from '../../store/actions/Actions';
 import { addToHistory } from '../../history';
+//import { Intention } from '../../Intentions';
 
 interface SelectingSAProps {
     editor: Editor,
-    onShowSelArea: (should: boolean) => void,
     onSelectArea: (payload: {startPoint: Point, endPoint: Point}) => void,
-    onWhitenArea: () => void
+    onWhitenArea: () => void,
+    //onSetIntention: (intent: Intention) => void,
+    onJoinSelectionWithCanvas: () => void,
 }
 
 
-const SelectingSA = (props: SelectingSAProps) => {
+const SelectingSelectedArea = (props: SelectingSAProps) => {
        
     let svgRef = useRef(null);
     
@@ -34,12 +35,21 @@ const SelectingSA = (props: SelectingSAProps) => {
     });
         
     function onMouseDownSVGHandler(event: any) {
-        
         const canvasCoords = canvas!.getBoundingClientRect();
         if (event.clientY < canvasCoords.top) return;
-        resolve(editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-        if (intention !== Intent.SelectingSA) return;
-        //console.log('SA SELECTING onMouseDownSVGHandler');
+        if (event.defaultPrevented) return;
+        console.log('SA in onMouseDownHandler function');
+        if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
+            console.log('dispatch SelectedArea joinSelectionWithCanvas');
+            addToHistory(props.editor);
+            props.onJoinSelectionWithCanvas();
+        }
+        // const canvasCoords = canvas!.getBoundingClientRect();
+        // if (event.clientY < canvasCoords.top) return;
+        
+        //resolve(editor, {x: event.clientX, y: event.clientY}, canvasCoords);
+        //if (intention !== Intent.SelectingSA) return;
+        console.log('SA SELECTING onMouseDownSVGHandler');
         setMouseState({
             ...mouseState,
             down: {
@@ -68,7 +78,7 @@ const SelectingSA = (props: SelectingSAProps) => {
     
     const onMouseUpSVGHandler = function (event: any) {
         if (!mouseState.isMousePressed) return;
-        //console.log('SA SELECTING onMouseUpSVGHandler');
+        console.log('SA SELECTING onMouseUpSVGHandler');
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
@@ -94,7 +104,7 @@ const SelectingSA = (props: SelectingSAProps) => {
             ...mouseState,
             isMousePressed: false,
         });
-        props.onShowSelArea(false);
+        //props.onSetIntention(Intention.HandleSelectedObject);
     }
     
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
@@ -145,8 +155,9 @@ function mapStateToProps(state: any) {
 function mapDispatchToProps(dispatch: any) {
     return {
       onSelectArea: (payload: {startPoint: Point, endPoint: Point}) => dispatch(selectArea(payload)),
-      onWhitenArea: () => dispatch(whitenArea())
+      onWhitenArea: () => dispatch(whitenArea()),
+      onJoinSelectionWithCanvas: () => dispatch(joinSelectionWithCanvas())
     }
   }
   
-export default connect(mapStateToProps, mapDispatchToProps)(SelectingSA);
+export default connect(mapStateToProps, mapDispatchToProps)(SelectingSelectedArea);

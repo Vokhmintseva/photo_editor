@@ -4,6 +4,7 @@ import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { addImage } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
 import { addToHistory } from '../../history';
+import './buttons.css';
 
 interface OpenButtonProps {
     editor: Editor,
@@ -12,6 +13,7 @@ interface OpenButtonProps {
 
 function OpenButton(props: OpenButtonProps) {
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
+    
     function onImageChange(e: React.ChangeEvent<HTMLInputElement>) {
         let file: any = e!.target!.files![0];
         const image = new Image();
@@ -41,7 +43,11 @@ function OpenButton(props: OpenButtonProps) {
     }
 
     return (
-        <input type="file" name="myImage" onChange={onImageChange} style={{margin: '5px'}}/>
+        <div className="openBtn">
+            <label htmlFor="myImage" className="openBtn__label" title="Открыть">
+                </label>
+            <input type="file" id="myImage" name="myImage" onChange={onImageChange} className="openBtn__input"/>
+        </div>
     );
 }    
 

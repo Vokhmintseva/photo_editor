@@ -50,27 +50,54 @@
 
 .applyBtn {
     background: url('../../images/apply.png') no-repeat; 
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     background-size: 100%;
+    margin: 5px;
 }
 
 .abolishBtn {
     background: url('../../images/abolish.png') no-repeat; 
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
     background-size: 100%;
+    margin: 5px;
 }
 
-
+.shapeBar__buttons,
+.textBar__buttons {
+    margin: 0 auto;
+}
 
 .shapeBorder {
    position: absolute;
    border: 1px dashed black;
 }
 
+.textbar,
 .shapeBar {
-   height: 30px;
+   display: flex;
+   flex-direction: column;
+   position: absolute;
+   border: 1px solid rgb(110, 3, 44);
+   background-color: #FFD6DA;
+}
+
+.shapebar__input {
+    margin: 5px;
+}
+
+.shapebar__fillLabel,
+.shapebar__borderLabel {
+    margin: 5px 0 5px 5px;
+}
+
+.textbar__colorLabel {
+    margin: 5px 5px 5px 0;
+}    
+
+.shapebar__fillLabel {
+    margin-right: 30px;
 }
 
 .slider {

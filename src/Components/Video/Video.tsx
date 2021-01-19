@@ -1,15 +1,16 @@
 import React, {useEffect, useRef, useContext}  from 'react';
-import { dispatch } from '../../reducer';
 import {Editor} from '../../model';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
 import { addImage } from '../../store/actions/Actions';
 import { connect } from 'react-redux';
 import { addToHistory } from '../../history';
+import { Intention } from '../../Intentions';
 
 interface VideoProps {
     editor: Editor,
-    onShowCamera: () => void,
-    onAddImage: (payload: {newImage: ImageData}) => void
+    //onShowCamera: () => void,
+    onAddImage: (payload: {newImage: ImageData}) => void,
+    onSetIntention: (intent: Intention) => void,
 }
 
 function Video (props: VideoProps) {
@@ -38,7 +39,7 @@ function Video (props: VideoProps) {
 
     function stopWebCam() {
         video.srcObject.getVideoTracks()[0].stop();
-        props.onShowCamera();
+        props.onSetIntention(Intention.SelectArea);
     } 
 
     function snapshot() {

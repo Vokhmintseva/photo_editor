@@ -12,12 +12,12 @@ const SelectFilter = (props: SelectProps) => {
     const htmlFor = `${props.label}-${Math.random()}`
 
     return (
-        <div className="">
-            <label htmlFor={htmlFor}>{props.label}</label>
+        <div className="filterBtn__selectWrapper" >
             <select
                 id={htmlFor}
                 value={props.value}
                 onChange={props.onChange}
+                className="filterBtn__select"
             >
                 {props.options.map((option: any, index: any) => {
                     return (
