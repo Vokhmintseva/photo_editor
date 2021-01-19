@@ -1,14 +1,7 @@
-import React, { useContext, useState, useEffect }  from 'react';
-//import {Editor} from '../../model';
+import React, { useContext, useState }  from 'react';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
-import { setTextColor } from '../../actions';
-//import { connect } from 'react-redux';
 
-interface SaveButtonProps {
-    //editor: Editor,
-}
-
-function SaveButton(saveButtonProps: SaveButtonProps) {
+function SaveButton() {
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);      
     const [ext, setExt] = useState('jpeg')
 
@@ -44,11 +37,4 @@ function SaveButton(saveButtonProps: SaveButtonProps) {
       );
 }
 
-// function mapStateToProps(state: any) {
-//   return {
-//       editor: state.editorReducer.editor
-//   }
-// }
-
-//export default connect(mapStateToProps)(SaveButton);
 export default SaveButton;

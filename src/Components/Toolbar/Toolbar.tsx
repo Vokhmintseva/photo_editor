@@ -15,8 +15,6 @@ import { Intention } from '../../Intentions';
 
 interface ToolbarProps {
     editor: Editor,
-    //onShowFigureClickHandler: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
-    //onShowNewFigure: (should: boolean) => void,
     onDeselectArea: () => void,
     onApplyFilter: (payload: {filterColor: string}) => void,
     onCut: () => void,
@@ -37,19 +35,16 @@ function Toolbar(props: ToolbarProps) {
     }
 
     function filterButtonHandler(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-        console.log('dispatch Toolbar onApplyFilter');
         addToHistory(props.editor);
         props.onApplyFilter({filterColor: filter});
     }
     
     function onClearSelectionHandler() {
-        console.log('dispatch Toolbar cut');
         addToHistory(props.editor);
         props.onCut();
     }
 
     function onSelectionCropHandler() {
-        console.log('dispatch Toolbar crop');
         addToHistory(props.editor);
         props.onCrop();
     }
@@ -57,7 +52,6 @@ function Toolbar(props: ToolbarProps) {
     function onClearAllHandler() {
         let shouldremoveCanvas = window.confirm("Текущий холст будет удален. Вы подтверждаете удаление холста?");
         if (shouldremoveCanvas) {
-            console.log('dispatch Toolbar createCanvas');
             addToHistory(props.editor);
             props.onCreateCanvas({width: 800, height: 600});
             props.onSetIntention(Intention.SelectArea);
@@ -68,7 +62,6 @@ function Toolbar(props: ToolbarProps) {
         const newFigure: Figure = event.target.id;
         props.onSetFigure(newFigure);
         props.onSetIntention(Intention.HandleSelectedObject);
-        console.log('dispatch EditorComponent addFigure');
         addToHistory(props.editor);
         props.onAddFigure({figureType: newFigure});
     }
@@ -84,8 +77,6 @@ function Toolbar(props: ToolbarProps) {
             {text: "синий", value: "blue"},
         ]}
     />
-    //let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
-
     useLayoutEffect(() => {
         const toolbar: HTMLCanvasElement = toolbarRef.current!;
         toolbar.style.width = props.editor.canvas.width + 'px';

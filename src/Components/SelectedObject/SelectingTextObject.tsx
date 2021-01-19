@@ -3,7 +3,6 @@ import { Editor, Point } from '../../model';
 import { isSelectedArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import {CanvasContext} from '../EditorComponent/EditorComponent';
-//import { setIntention, intention, Intent } from '../../intentResolver';
 import './SelectedObject.css';
 import { connect } from 'react-redux';
 import { deselectArea, joinSelectionWithCanvas, selectTextArea } from '../../store/actions/Actions';
@@ -38,8 +37,6 @@ const SelectingTextObject = (props: TextAreaProps) => {
         if (props.editor.selectedObject) return;
         const canvasCoords = canvas!.getBoundingClientRect();
         if (event.clientY < canvasCoords.top) return;
-        // if (intention !== Intent.SelectingTextObj) return;
-        // console.log('TEXT SELECTING onMouseDownSVGHandler');
         setMouseState({
             ...mouseState,
             down: {
@@ -68,9 +65,7 @@ const SelectingTextObject = (props: TextAreaProps) => {
     
     const onMouseUpHandler = function (event: any) {
         if (!mouseState.isMousePressed) return;
-        console.log('TEXT SELECTING onMouseUpSVGHandler');
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
-            //setIntention(Intent.WorkWithTextObj);
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
                 { x: mouseState.down.x, y: mouseState.down.y },
@@ -81,7 +76,6 @@ const SelectingTextObject = (props: TextAreaProps) => {
             const startY = selectionCoords.startY + 2 as number;
             const endX = selectionCoords.endX + 2 as number;
             const endY = selectionCoords.endY + 2 as number;
-            console.log('dispatch SelectingTextObject selectTextArea');
             addToHistory(props.editor);
             props.onSelectTextArea({startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
         }
@@ -96,14 +90,12 @@ const SelectingTextObject = (props: TextAreaProps) => {
     useEffect(() => {
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
             console.log('dispatch SelectingTextObject joinSelectionWithCanvas');
-            //addToHistory(props.editor);
             props.onJoinSelectionWithCanvas();
         }
     }, []);
 
     useEffect(() => {
         if (!canvas) return;
-        
         const canvasCoords = canvas!.getBoundingClientRect();
         document.addEventListener('mousedown', onMouseDownHandler);
         document.addEventListener('mousemove', onMouseMoveHandler);
@@ -120,8 +112,6 @@ const SelectingTextObject = (props: TextAreaProps) => {
         svg.style.left = adjustedSVGcoords.startX.toString();
         svg.setAttribute('width', adjustedSVGcoords.width.toString());
         svg.setAttribute('height', adjustedSVGcoords.height.toString());
-    
-        //функция сработает когда произойдет следующая перерисовка
         return () => {
             document.removeEventListener('mousedown', onMouseDownHandler);
             document.removeEventListener('mousemove', onMouseMoveHandler);

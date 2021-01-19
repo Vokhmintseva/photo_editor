@@ -11,8 +11,6 @@ interface SliderProps {
     changeSize: (x: number, y: number, width: number, height: number) => void,
     type: SliderType,
     showNewFigure: Boolean,
-    // onResetSlidersHandler: () => void,
-    // resetSliders: Boolean,
 }
 
 const adjustCoords = function (x: number, y: number, canvasCoords: DOMRect): {x: number, y: number} {

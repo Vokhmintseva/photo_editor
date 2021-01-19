@@ -8,7 +8,6 @@ import { Intention } from '../../Intentions';
 
 interface VideoProps {
     editor: Editor,
-    //onShowCamera: () => void,
     onAddImage: (payload: {newImage: ImageData}) => void,
     onSetIntention: (intent: Intention) => void,
 }
@@ -47,7 +46,6 @@ function Video (props: VideoProps) {
         let context = canvas!.getContext('2d');
         context!.drawImage(video, 0, 0);
         let newImgData = context!.getImageData(0, 0, canvas!.width, canvas!.height);
-        console.log('dispatch Video addImage');
         addToHistory(props.editor);
         props.onAddImage({newImage: newImgData});
         stopWebCam();

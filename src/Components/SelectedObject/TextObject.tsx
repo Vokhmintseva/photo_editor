@@ -3,14 +3,13 @@ import { Editor, Point } from '../../model';
 import './SelectedObject.css';
 import { isTextObject } from '../../actions';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
-//import { resolve, intention, Intent, setIntention } from '../../intentResolver';
 import SelectFontFamily from '../Select/SelectFontFamily';
 import SelectFontSize from '../Select/SelectFontSize';
 import Slider from './Slider';
 import SliderType from './slyderType';
 import { connect } from 'react-redux';
 import { deselectArea, addImage, resizeEditorObj, dropTextObj } from '../../store/actions/Actions';
-import { undoStack, addToHistory } from '../../history';
+import { undoStack } from '../../history';
 import { Intention } from '../../Intentions';
 
 const fonts = ['Roboto', 'Open Sans', 'Montserrat', 'Roboto Condensed', 'Source Sans Pro',
@@ -18,7 +17,6 @@ const fonts = ['Roboto', 'Open Sans', 'Montserrat', 'Roboto Condensed', 'Source 
 
 interface TextObjProps {
     editor: Editor,
-    //onShowTextArea: () => void,
     onResizeEditorObj: (payload: {newPoint: Point, newWidth: number, newHeight: number}) => void,
     onDropTextObj: (payload: {where: Point}) => void,
     onAddImage: (payload: {newImage: ImageData}) => void,
@@ -154,8 +152,6 @@ const TextObject = (props: TextObjProps) => {
     function onChangeSize(x: number, y: number, width: number, height: number) {
         const canvasCoords = canvas!.getBoundingClientRect();
         setPosition({x, y, width, height});
-        console.log('dispatch TextObject resizeEditorObj');
-        //addToHistory(props.editor);
         props.onResizeEditorObj({newPoint: {x: x, y: y - canvasCoords.top}, newWidth: width, newHeight: height});
     }
 
@@ -191,8 +187,6 @@ const TextObject = (props: TextObjProps) => {
         ctx!.font = fontWeight + " " + fontStyle + " " + fontSize + "px " + fontFamily;
         wrapText(ctx!, text, position.x, position.y - canvasCoords.top + fontSize, props.editor.selectedObject!.w, lineHeight);
         let newImgData = ctx!.getImageData(0, 0, canvas!.width, canvas!.height);
-        console.log('dispatch TextObject addImage');
-        //addToHistory(props.editor);
         props.onAddImage({newImage: newImgData});
         props.onSetIntention(Intention.SelectArea);
         props.onDeselectArea();
@@ -205,11 +199,7 @@ const TextObject = (props: TextObjProps) => {
     }
 
     function onMouseDownTextObjHandler(event: any) {
-        //const canvasCoords = canvas!.getBoundingClientRect();
-        // resolve(props.editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-        // if (intention !== Intent.DraggingTextObj) return;
         if (event.defaultPrevented) return;
-        console.log('TEXT in onMouseDownTextObjHandler function');
         setOffset({x: event.clientX - position.x!, y: event.clientY - position.y!});
         setIsMousePressed(true);
     }
@@ -228,17 +218,12 @@ const TextObject = (props: TextObjProps) => {
     const onMouseUpTextObjHandler = function (event: any) {
         if (event.defaultPrevented) return;
         if (!isMousePressed) return;
-        //setIntention(Intent.WorkWithTextObj);
-        //console.log('TEXT in onMouseUpTextObjHandler function');
         const canvasCoords = canvas!.getBoundingClientRect();
         const textAreaElem: HTMLTextAreaElement = textAreaRef.current!;
         const textAreaCoords = textAreaElem.getBoundingClientRect();
         const adjustedCoords = adjustCoords(event.clientX - offset.x, event.clientY - offset.y, textAreaCoords, canvasCoords);
         setPosition({x: adjustedCoords.left, y: adjustedCoords.top, width: position.width, height: position.height});
-        console.log('dispatch TextObject dropTextObj');
-        //addToHistory(props.editor);
         props.onDropTextObj({where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
-        //dispatch(dropTextObj, {where: {x: adjustedCoords.left, y: adjustedCoords.top - canvasCoords.top}});
         setIsMousePressed(false);
     }
 

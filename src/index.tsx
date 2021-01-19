@@ -18,20 +18,14 @@ function loggerMiddleWare(store: any) {
   return function(next: any) {
     return function(action: any) {
       const result = next(action);
-      // console.log('store.getState()', store.getState().editorReducer.editor);
-      //addToHistory(store.getState().editorReducer.editor);
-      // for (let i=0; i < undoStack.length; i++) {
-      //   console.log('элементы стека undo', undoStack[i]);
-      // }
+
       return result;
     }
   }
 }
 
 const store = createStore(rootReducer, applyMiddleware(loggerMiddleWare));
-// store.subscribe(() => {
-//   addToHistory(store.getState().editorReducer.editor);
-// })
+
 
 const app = (
   <Provider store={store}>

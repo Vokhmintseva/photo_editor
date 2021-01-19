@@ -3,17 +3,14 @@ import { Editor, Point } from '../../model';
 import { isSelectedArea } from '../../actions';
 import transform from './CoordinateTransformer';
 import { CanvasContext } from '../EditorComponent/EditorComponent';
-//import { resolve, intention, Intent } from '../../intentResolver';
 import { connect } from 'react-redux';
 import { selectArea, whitenArea, joinSelectionWithCanvas } from '../../store/actions/Actions';
 import { addToHistory } from '../../history';
-//import { Intention } from '../../Intentions';
 
 interface SelectingSAProps {
     editor: Editor,
     onSelectArea: (payload: {startPoint: Point, endPoint: Point}) => void,
     onWhitenArea: () => void,
-    //onSetIntention: (intent: Intention) => void,
     onJoinSelectionWithCanvas: () => void,
 }
 
@@ -38,18 +35,9 @@ const SelectingSelectedArea = (props: SelectingSAProps) => {
         const canvasCoords = canvas!.getBoundingClientRect();
         if (event.clientY < canvasCoords.top) return;
         if (event.defaultPrevented) return;
-        console.log('SA in onMouseDownHandler function');
         if (props.editor.selectedObject && isSelectedArea(props.editor.selectedObject)) {
-            console.log('dispatch SelectedArea joinSelectionWithCanvas');
-            //addToHistory(props.editor);
             props.onJoinSelectionWithCanvas();
         }
-        // const canvasCoords = canvas!.getBoundingClientRect();
-        // if (event.clientY < canvasCoords.top) return;
-        
-        //resolve(editor, {x: event.clientX, y: event.clientY}, canvasCoords);
-        //if (intention !== Intent.SelectingSA) return;
-        console.log('SA SELECTING onMouseDownSVGHandler');
         setMouseState({
             ...mouseState,
             down: {
@@ -78,7 +66,6 @@ const SelectingSelectedArea = (props: SelectingSAProps) => {
     
     const onMouseUpSVGHandler = function (event: any) {
         if (!mouseState.isMousePressed) return;
-        console.log('SA SELECTING onMouseUpSVGHandler');
         if ((event.clientX !== mouseState.down.x) && (event.clientY !== mouseState.down.y)) {
             const canvasCoords = canvas!.getBoundingClientRect();
             const selectionCoords = transform(
@@ -90,28 +77,21 @@ const SelectingSelectedArea = (props: SelectingSAProps) => {
             const startY = selectionCoords.startY as number;
             const endX = selectionCoords.endX as number;
             const endY = selectionCoords.endY as number;
-            console.log('dispatch SelectingSA selectArea');
             addToHistory(props.editor);
             props.onSelectArea({startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
-            console.log('dispatch SelectingSA whitenArea');
-            //addToHistory(props.editor);
             props.onWhitenArea();
-            // dispatch(selectArea, {startPoint: {x: startX, y: startY - canvasCoords.top}, endPoint: {x: endX, y: endY - canvasCoords.top}});
-            // dispatch(whitenArea, {});
 
         }
         setMouseState({
             ...mouseState,
             isMousePressed: false,
         });
-        //props.onSetIntention(Intention.HandleSelectedObject);
     }
     
     let canvas: HTMLCanvasElement | null = useContext(CanvasContext);
     
     useEffect(() => {
         if (!canvas) return;
-        
         const canvasCoords = canvas!.getBoundingClientRect();
         document.addEventListener('mousedown', onMouseDownSVGHandler);
         document.addEventListener('mousemove', onMouseMoveSVGHandler);
@@ -129,9 +109,7 @@ const SelectingSelectedArea = (props: SelectingSAProps) => {
         svg.setAttribute('width', adjustedSVGcoords.width.toString());
         svg.setAttribute('height', adjustedSVGcoords.height.toString());
     
-        //функция сработает когда произойдет следующая перерисовка
         return () => {
-            
             document.removeEventListener('mousedown', onMouseDownSVGHandler);
             document.removeEventListener('mousemove', onMouseMoveSVGHandler);
             document.removeEventListener('mouseup', onMouseUpSVGHandler);

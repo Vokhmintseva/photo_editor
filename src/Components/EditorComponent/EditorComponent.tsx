@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState } from 'react';
 import { Figure, Editor } from '../../model';
 import Toolbar from '../Toolbar/Toolbar';
 import { isSelectedArea, isTextObject, isShapeObject } from '../../actions';
@@ -13,13 +13,11 @@ import SelectingTextObject from '../SelectedObject/SelectingTextObject';
 import Gallery from '../Gallery/Gallery';
 import { connect } from 'react-redux';
 import { deselectArea, addFigure } from '../../store/actions/Actions';
-import { addToHistory } from '../../history';
 import { Intention } from '../../Intentions';
 
 interface EditorComponentProps {
     editor: Editor,
     onDeselectArea: () => void,
-    
 }
 
 export const CanvasContext = React.createContext(null);
@@ -43,7 +41,6 @@ function EditorComponent(props: EditorComponentProps) {
 
     function onSetFigure(newFigure: Figure) {
         setFigure(newFigure);
-        //setShowNewFigure(true);
     }
 
 
